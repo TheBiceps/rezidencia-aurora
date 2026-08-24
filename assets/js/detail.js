@@ -228,6 +228,23 @@ function initDetail() {
     }));
   });
 
+  /* persistent CTA on phones — the price and the enquiry button stay in
+     reach instead of living 2,000px up the page */
+  const bar = document.querySelector('[data-sticky-cta]');
+  if (bar) {
+    const sold = a.status === 'predany';
+    bar.innerHTML = `
+      <div class="sticky-cta__price">
+        <span class="sticky-cta__label">${sold ? 'Byt ' + a.id : 'Cena vrátane DPH'}</span>
+        <span class="sticky-cta__value">${sold ? 'Predané' : fmtPrice(a.price, a.status)}</span>
+      </div>
+      ${sold
+        ? `<a class="btn btn--primary" href="byty.html?status=dostupny">Voľné byty</a>`
+        : `<a class="btn btn--primary" href="kontakt.html?byt=${encodeURIComponent(a.id)}">Mám záujem</a>`}`;
+    bar.hidden = false;
+    document.body.classList.add('has-sticky-cta');
+  }
+
   /* ← / → walk through the building */
   document.addEventListener('keydown', e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;

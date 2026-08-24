@@ -29,7 +29,7 @@ PREVIEW = True
 
 # Bump this whenever CSS/JS changes so browsers (and the client's phone)
 # do not serve a stale cached copy. Appended as ?v= to every asset link.
-ASSET_V = "10"
+ASSET_V = "15"
 
 NAV = [
     ("projekt.html", "Projekt"),
@@ -59,6 +59,7 @@ I = {
  "tap": '<path d="M9 11V6a2 2 0 1 1 4 0v8"/><path d="M13 12a2 2 0 1 1 4 0v1M17 13a2 2 0 1 1 4 0v3a5 5 0 0 1-5 5h-2.5a5 5 0 0 1-4.3-2.5L6 15"/>',
  "grid": '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
  "rows": '<path d="M3 6h18M3 12h18M3 18h18"/>',
+ "swipe": '<path d="M4 12h13M13 8l4 4-4 4"/><circle cx="7" cy="12" r="0"/>',
  "sliders": '<path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h10M18 18h2"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="18" r="2"/>',
  "train": '<rect x="5" y="3" width="14" height="13" rx="3"/><path d="M9 3v13M15 3v13M5 10h14M7 20l-2 2M17 20l2 2"/><circle cx="9" cy="19" r="0"/>',
 }
@@ -415,7 +416,8 @@ def index_html():
       </div>
       <a class="link-arrow" href="byty.html">Všetkých 50 bytov {svg("arrow")}</a>
     </div>
-    <div class="cards" data-featured></div>
+    <div class="cards cards--rail" data-featured></div>
+    <p class="rail-hint">{svg("swipe")} Potiahnite pre ďalšie byty</p>
   </div>
 </section>
 
@@ -666,12 +668,14 @@ def byt_html():
   <div class="shell">
     <p class="eyebrow">Podobné byty</p>
     <h2 style="margin-bottom:clamp(26px,4vw,40px)">Rovnaká typológia</h2>
-    <div class="cards" data-similar-cards></div>
+    <div class="cards cards--rail" data-similar-cards></div>
   </div>
 </section>
 
 ''' + cta_band() + '''
 </main>
+
+<div class="sticky-cta" data-sticky-cta hidden></div>
 ''' + FOOT + scripts("building.js", "detail.js"))
 
 # =============================================================================

@@ -88,20 +88,25 @@ function initHeroScroll() {
     if (window.ResizeObserver) new ResizeObserver(setH).observe(stats);
   }
 
-  /* A transform on .hero__vis would make it the containing block for the
-     unit sheet, which is position:fixed on phones. Desktop only. */
+  /* Desktop only. On phones the hero is stacked, so the copy sits BELOW the
+     picture and is the main content — fading it out on scroll just greyed the
+     page. A transform here would also trap the unit sheet, which is fixed. */
   const wide = window.matchMedia('(min-width: 900px)');
 
   onFrame(() => {
+    if (!wide.matches) {
+      if (content.style.opacity || content.style.transform) {
+        content.style.opacity = '';
+        content.style.transform = '';
+      }
+      if (vis.style.transform) vis.style.transform = '';
+      return;
+    }
     const h = hero.offsetHeight;
     const p = clamp01(window.scrollY / Math.max(h * 0.85, 1));
     content.style.transform = `translate3d(0, ${(p * -54).toFixed(1)}px, 0)`;
     content.style.opacity = (1 - p * 1.25).toFixed(3);
-    if (wide.matches) {
-      vis.style.transform = `translate3d(0, ${(p * 40).toFixed(1)}px, 0) scale(${(1 + p * 0.05).toFixed(4)})`;
-    } else if (vis.style.transform) {
-      vis.style.transform = '';
-    }
+    vis.style.transform = `translate3d(0, ${(p * 40).toFixed(1)}px, 0) scale(${(1 + p * 0.05).toFixed(4)})`;
   });
 }
 

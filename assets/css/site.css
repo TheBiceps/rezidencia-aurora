@@ -1189,18 +1189,6 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
 }
 @media (min-width: 900px) { .tip__actions, .tip__close { display: none; } }
 
-/* --- landing --------------------------------------------------------------- */
-@media (max-width: 899px) {
-  .hero__stat b { font-size: clamp(1.5rem, 7vw, 2rem); }
-  .hero__stat   { padding: 14px 6px 16px; }
-  /* floor captions sit outside the framed area on a phone and get clipped */
-  .picker__floorlabel { display: none; }
-  /* the facade is an overview at this size; the floor list is the way in */
-  .floorstrip-wrap { margin-top: 22px; }
-  .floorstrip__row { min-height: 52px; }
-  .figure  { padding: 24px 20px; }
-  .feature { padding: 26px 22px 28px; }
-}
 
 /* --- apartment detail ---------------------------------------------------- */
 @media (max-width: 999px) {
@@ -1228,3 +1216,164 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
   .btn { padding-inline: 20px; font-size: .74rem; }
   .brand__sub { display: none; }
 }
+
+/* ===========================================================================
+   MOBILE LAYOUT — designed for the phone, not scaled down from desktop.
+   The desktop page measured 12,585px tall on a 375px screen; the rules below
+   bring the same content to roughly half that by changing layout, not by
+   shrinking things.
+   =========================================================================== */
+
+@media (max-width: 899px) {
+
+  /* --- vertical rhythm --------------------------------------------------- */
+  .section         { padding-block: 56px; }
+  .section--tight  { padding-block: 40px; }
+  .section--ink    { padding-block: 48px; }
+  .page-head       { padding-top: calc(var(--nav-h) + 40px); padding-bottom: 28px; }
+  .grid-2          { gap: 30px; }
+  .eyebrow         { margin-bottom: 14px; }
+
+  /* --- type scale -------------------------------------------------------- */
+  h1 { font-size: clamp(2.15rem, 9.2vw, 2.9rem); }
+  h2 { font-size: clamp(1.75rem, 7.4vw, 2.35rem); }
+  h3 { font-size: 1.22rem; }
+  .page-head h1 { font-size: clamp(2.1rem, 9vw, 2.8rem); }
+  .lede { font-size: 1rem; line-height: 1.65; }
+  p { margin-bottom: .95em; }
+
+  /* --- hero -------------------------------------------------------------- */
+  .hero { background: var(--paper); }
+  .hero__title { max-width: none; }
+  .hero__sub { margin: 16px 0 22px; }
+  /* Slovak labels are long; two up wrapped "Ponuka bytov" onto two lines */
+  .hero__actions { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .hero__actions .btn { min-height: 52px; }
+
+  /* the legend + hint were costing ~200px of hero as three wrapped rows */
+  .legend { gap: 4px 14px; }
+  .legend__item { font-size: .63rem; letter-spacing: .08em; gap: 7px; padding-block: 14px; }
+  .legend__dot { width: 7px; height: 7px; }
+  .picker__hint { font-size: .63rem; letter-spacing: .1em; }
+  /* floor captions sit outside the framed area on a phone and get clipped */
+  .picker__floorlabel { display: none; }
+
+  .hero__stat   { padding: 12px 6px 14px; }
+  .hero__stat b { font-size: clamp(1.45rem, 6.4vw, 1.9rem); }
+  .hero__stat span { font-size: .6rem; letter-spacing: .14em; }
+
+  /* the floor list was eight stacked 52px rows — 420px of hero. As a
+     horizontal rail of chips it costs ~80px and reads as a picker. */
+  .floorstrip-wrap { margin-top: 20px; }
+  .floorstrip {
+    display: flex; gap: 8px; background: none; border: 0;
+    overflow-x: auto; padding-bottom: 4px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .floorstrip::-webkit-scrollbar { display: none; }
+  .floorstrip__row {
+    flex: 0 0 auto; scroll-snap-align: start;
+    flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px;
+    min-width: 104px; min-height: 58px; padding: 10px 14px;
+    border: 1px solid var(--line); border-radius: var(--r-sm);
+    background: var(--paper);
+  }
+  .floorstrip__no { font-size: .84rem; }
+  .floorstrip__free { font-size: .7rem; }
+
+  /* --- dark sections ------------------------------------------------------
+     A single black column of four huge numbers looked like dead space. Two
+     up reads as a stat block and halves the height.                        */
+  .figures { grid-template-columns: 1fr 1fr; }
+  .figure  { padding: 20px 18px; }
+  .figure b { font-size: clamp(1.8rem, 7.6vw, 2.4rem); }
+  .figure span { font-size: .61rem; letter-spacing: .14em; line-height: 1.4; display: block; margin-top: 4px; }
+
+  .section--ink .grid-2 { gap: 26px; }
+  .ph--ink { min-height: 190px; padding: 26px 22px; }
+  .ph--ink b { font-size: 1.2rem; }
+  .ph--tall { min-height: 260px; }
+
+  /* --- feature tiles ------------------------------------------------------ */
+  .feature { padding: 24px 22px 26px; }
+  .feature svg { margin-bottom: 12px; width: 22px; height: 22px; }
+  .feature h3 { font-size: 1.12rem; margin-bottom: 6px; }
+  .feature p { font-size: .89rem; }
+
+  /* --- card rail ----------------------------------------------------------
+     Six stacked property cards ran to ~1,800px. A snap rail shows the same
+     six in one screen and matches how people browse listings on a phone.  */
+  .cards--rail {
+    display: flex; gap: 12px; grid-template-columns: none;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+    margin-inline: calc(clamp(20px, 5vw, 56px) * -1);
+    padding-inline: clamp(20px, 5vw, 56px);
+    /* snap points ignore the container padding, which pinned the first card
+       flush to the screen edge — scroll-padding puts the inset back */
+    scroll-padding-inline: clamp(20px, 5vw, 56px);
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .cards--rail::-webkit-scrollbar { display: none; }
+  .cards--rail .card {
+    flex: 0 0 76%; scroll-snap-align: start;
+    border-radius: var(--r-md);
+    padding: 22px 22px 20px;
+  }
+  .rail-hint {
+    display: flex; align-items: center; gap: 8px; margin-top: 12px;
+    font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted);
+  }
+  .rail-hint svg { width: 15px; height: 15px; }
+
+  /* --- scrollytelling ----------------------------------------------------- */
+  .scrolly__step { min-height: 50svh; padding-top: 5vh; }
+  .scrolly__step h3 { font-size: clamp(1.5rem, 6.6vw, 2rem); }
+  .scrolly__step p { font-size: .95rem; }
+
+  /* --- timeline / faq ----------------------------------------------------- */
+  .tl { padding: 20px 0; }
+  .tl dd b { font-size: 1.15rem; }
+  .faq summary { padding-block: 18px; font-size: 1.08rem; }
+
+  /* --- footer ------------------------------------------------------------- */
+  .foot { padding-block: 48px 24px; }
+  .foot__grid { gap: 30px; }
+  .foot__brand { font-size: 1.75rem; margin-bottom: 8px; }
+  .foot h4 { margin-bottom: 12px; }
+  .foot__bottom { margin-top: 34px; padding-top: 18px; font-size: .72rem; gap: 8px; }
+}
+
+/* --- apartment detail: a persistent CTA, the way property apps do it ------ */
+.sticky-cta { display: none; }
+/* the swipe affordance belongs to the phone rail only */
+.rail-hint { display: none; }
+
+@media (max-width: 899px) {
+  body.has-sticky-cta { padding-bottom: 84px; }
+  .sticky-cta {
+    position: fixed; inset: auto 0 0 0; z-index: var(--z-nav);
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px clamp(16px, 5vw, 24px) calc(12px + env(safe-area-inset-bottom));
+    background: rgba(247, 244, 239, .96);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line);
+  }
+  .sticky-cta__price { display: grid; gap: 1px; line-height: 1.15; }
+  .sticky-cta__label { font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; color: var(--text-muted); }
+  .sticky-cta__value { font-family: var(--f-display); font-size: 1.3rem; white-space: nowrap; }
+  .sticky-cta .btn { margin-left: auto; flex: 0 1 auto; padding-inline: 20px; }
+}
+
+/* --- very small phones (320px) ------------------------------------------- */
+@media (max-width: 359px) {
+  .hero__actions { grid-template-columns: 1fr; }
+  .cards--rail .card { flex-basis: 86%; }
+  .floorstrip__row { min-width: 96px; }
+  .sticky-cta__value { font-size: 1.15rem; }
+}
+
+/* the tapped legend entry stays marked while its units are highlighted */
+.legend__item[data-on="true"] { color: var(--ink); }
+.legend__item[data-on="true"] .legend__dot { transform: scale(1.45); }

@@ -138,11 +138,34 @@ cached stylesheet after a deploy.
 
 ## Mobile
 
+The phone layout is designed for the phone rather than scaled down from the
+desktop one. The landing page measured 12,585px tall on a 375px screen; the
+same content now runs about 9,600px, by changing layout rather than shrinking
+things.
+
 Audited for horizontal overflow and touch-target size on every page at 320,
-375 and 430 px. Both are clean; the only sub-44px control is the consent
+375 and 430px — both clean. The only sub-44px control is the consent
 checkbox, whose 292x44 label toggles it.
 
-Phone-specific behaviour, all in the `MOBILE` block at the end of the CSS:
+Layout changes made for the phone:
+
+- **The hero scroll fade is desktop-only.** On a phone the copy sits *below*
+  the picture and is the main content, so fading it on scroll just greyed the
+  page out over the blue hero background.
+- **The floor list is a horizontal chip rail** instead of eight stacked 52px
+  rows — 420px of hero down to about 80.
+- **Available units are a snap rail.** Six stacked cards ran to ~1,800px; the
+  rail shows the same six in one screen and matches how listings get browsed
+  on a phone. `scroll-padding-inline` is required or snap ignores the
+  container padding and pins the first card to the screen edge.
+- **The stats band goes two-up.** A single black column of four huge numbers
+  read as dead space.
+- **The apartment detail page gets a fixed price + enquiry bar**, so the CTA
+  is not 2,000px up the page.
+- **The legend is tappable**, since hovering it does nothing on a phone.
+- Type and section padding step down, `--nav-h` drops to 64px.
+
+Phone-specific behaviour, all in the `MOBILE` blocks at the end of the CSS:
 
 - **Filters are a bottom sheet.** Inline they pinned ~326px of controls under
   the nav and ate half the screen. The sticky bar is now just

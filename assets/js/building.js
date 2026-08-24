@@ -520,10 +520,18 @@ function initPicker(root) {
         r.classList.toggle('is-dim', r.dataset.status !== status);
       });
     };
-    item.addEventListener('mouseenter', on);
+    item.addEventListener('mouseenter', () => { if (!isTouch) on(); });
     item.addEventListener('focus', on);
-    item.addEventListener('mouseleave', clear);
-    item.addEventListener('blur', clear);
+    item.addEventListener('mouseleave', () => { if (!isTouch) clear(); });
+    item.addEventListener('blur', () => { if (!isTouch) clear(); });
+    /* hover does nothing on a phone, so make the legend a tap filter */
+    item.addEventListener('click', () => {
+      const already = root.classList.contains('is-legend') && item.dataset.on === 'true';
+      document.querySelectorAll('[data-legend]').forEach(o => { o.dataset.on = 'false'; });
+      if (already) { clear(); return; }
+      on();
+      item.dataset.on = 'true';
+    });
   });
 
   /* No pointer parallax here on purpose — drifting the building under the
