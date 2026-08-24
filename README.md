@@ -90,8 +90,10 @@ Nothing here is decorative-only; each piece is doing a job.
 - Hovering a **legend** entry (Voľný / Rezervovaný / Predaný) lights every unit
   with that status at once — the fastest read of what's still available.
 - A one-off sweep runs bottom-up on first load so the affordance needs no copy.
-- Pointer parallax: sky, mass and trees drift at different rates.
-- On scroll the copy lifts away and the building settles.
+- On scroll the copy lifts away and the building settles. (There is
+  deliberately **no** pointer parallax — drifting the facade under the cursor
+  read as wobble, not depth. The layer groups still exist in `mountFacade()`
+  if it is ever wanted back.)
 - Counters count up when they come into view.
 
 **Scrollytelling — "Dom po podlažiach"** (`[data-scrolly]` on the landing page)

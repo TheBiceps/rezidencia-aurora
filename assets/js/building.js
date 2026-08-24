@@ -510,25 +510,9 @@ function initPicker(root) {
     item.addEventListener('blur', clear);
   });
 
-  /* pointer parallax — the sky drifts less than the trees */
-  if (!calm && !isTouch) {
-    const layers = [...visEl.querySelectorAll('.pl')];
-    let raf = 0, tx = 0, ty = 0;
-    const apply = () => {
-      raf = 0;
-      layers.forEach(l => {
-        const d = +l.dataset.depth;
-        l.setAttribute('transform', `translate(${(tx * d * 26).toFixed(2)} ${(ty * d * 16).toFixed(2)})`);
-      });
-    };
-    root.addEventListener('pointermove', e => {
-      const b = root.getBoundingClientRect();
-      tx = ((e.clientX - b.left) / b.width - 0.5) * -2;
-      ty = ((e.clientY - b.top) / b.height - 0.5) * -2;
-      if (!raf) raf = requestAnimationFrame(apply);
-    });
-    root.addEventListener('pointerleave', () => { tx = ty = 0; if (!raf) raf = requestAnimationFrame(apply); });
-  }
+  /* No pointer parallax here on purpose — drifting the building under the
+     cursor read as wobble rather than depth. The `.pl` layer groups are still
+     emitted by mountFacade() if it is ever wanted back. */
 
   /* floor strip — the dependable way in on small screens */
   const strip = root.parentElement.querySelector('[data-floorstrip]');
