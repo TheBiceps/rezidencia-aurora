@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ponuka bytov — Rezidencia Aurora</title>
+<meta name="description" content="Kompletný prehľad 50 bytov: dispozícia, výmera, podlažie, orientácia, dostupnosť a cena. Filtrujte podľa počtu izieb, podlažia či rozpočtu.">
+<link rel="canonical" href="https://rezidencia-aurora.sk/byty.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Rezidencia Aurora">
+<meta property="og:locale" content="sk_SK">
+<meta property="og:title" content="Ponuka bytov — Rezidencia Aurora">
+<meta property="og:description" content="Kompletný prehľad 50 bytov: dispozícia, výmera, podlažie, orientácia, dostupnosť a cena. Filtrujte podľa počtu izieb, podlažia či rozpočtu.">
+<meta property="og:url" content="https://rezidencia-aurora.sk/byty.html">
+<meta name="theme-color" content="#14120F">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Preskočiť na obsah</a>
+<header class="nav nav--solid" data-nav="solid">
+  <div class="nav__inner">
+    <a class="brand" href="index.html" aria-label="Rezidencia Aurora — domov">
+      <span class="brand__mark">AURORA</span>
+      <span class="brand__sub">Bratislava</span>
+    </a>
+    <nav class="nav__links" aria-label="Hlavná navigácia"><a class="nav__link" href="projekt.html">Projekt</a><a class="nav__link" href="byty.html" aria-current="page">Byty</a><a class="nav__link" href="lokalita.html">Lokalita</a><a class="nav__link" href="galeria.html">Galéria</a><a class="nav__link" href="kontakt.html">Kontakt</a></nav>
+    <div class="nav__actions">
+      <a class="btn btn--ghost nav__cta" href="kontakt.html">Mám záujem</a>
+      <button class="nav__burger" type="button" data-drawer-open aria-expanded="false" aria-controls="drawer" aria-label="Otvoriť menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+  <div class="readbar"><span data-readbar></span></div>
+</header>
+
+<div class="drawer" id="drawer" data-drawer data-open="false" aria-hidden="true">
+  <div class="drawer__top">
+    <a class="brand" href="index.html"><span class="brand__mark">AURORA</span><span class="brand__sub">Bratislava</span></a>
+    <button class="drawer__close" type="button" data-drawer-close aria-label="Zavrieť menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <nav class="drawer__links" aria-label="Mobilná navigácia"><a class="drawer__link" href="projekt.html">Projekt</a><a class="drawer__link" href="byty.html" aria-current="page">Byty</a><a class="drawer__link" href="lokalita.html">Lokalita</a><a class="drawer__link" href="galeria.html">Galéria</a><a class="drawer__link" href="kontakt.html">Kontakt</a></nav>
+  <div class="drawer__foot">
+    <a href="tel:+421900000000">+421 900 000 000</a>
+    <a href="mailto:info@rezidencia-aurora.sk">info@rezidencia-aurora.sk</a>
+  </div>
+</div>
+<main id="main" data-list>
+<section class="page-head">
+  <div class="shell">
+    <nav class="crumbs" aria-label="Omrvinková navigácia" style="margin-bottom:22px">
+      <a href="index.html">Domov</a><span aria-hidden="true">/</span><span>Byty</span></nav>
+    <p class="eyebrow">Aktuálna dostupnosť</p>
+    <h1>Ponuka bytov</h1>
+    <p class="lede maxw">Päťdesiat bytov na ôsmich podlažiach. Filtrujte podľa dispozície, podlažia alebo rozpočtu — a kliknutím sa dostanete na detail s pôdorysom.</p>
+  </div>
+</section>
+
+<div class="filters">
+  <div class="shell">
+    <form class="filters__inner" role="search" aria-label="Filtrovanie bytov" onsubmit="return false">
+      <div class="field">
+        <label for="f-status">Stav</label>
+        <select id="f-status"><option value="">Všetky</option><option value="dostupny">Voľné</option><option value="rezervovany">Rezervované</option><option value="predany">Predané</option></select>
+      </div>
+      <div class="field">
+        <label for="f-rooms">Dispozícia</label>
+        <select id="f-rooms"><option value="">Všetky</option><option value="1">1-izbový</option><option value="2">2-izbový</option><option value="3">3-izbový</option><option value="4">4-izbový</option><option value="5">Penthouse</option></select>
+      </div>
+      <div class="field">
+        <label for="f-floor">Podlažie</label>
+        <select id="f-floor"><option value="">Všetky</option><option value="1">1. NP</option><option value="2">2. NP</option><option value="3">3. NP</option><option value="4">4. NP</option><option value="5">5. NP</option><option value="6">6. NP</option><option value="7">7. NP</option><option value="8">8. NP</option></select>
+      </div>
+      <div class="field">
+        <label for="f-area">Min. plocha</label>
+        <select id="f-area"><option value="">Bez limitu</option><option value="40">od 40 m²</option><option value="60">od 60 m²</option><option value="80">od 80 m²</option><option value="100">od 100 m²</option><option value="140">od 140 m²</option></select>
+      </div>
+      <div class="field">
+        <label for="f-price">Cena do</label>
+        <select id="f-price"><option value="">Bez limitu</option><option value="200000">200 000 €</option><option value="300000">300 000 €</option><option value="400000">400 000 €</option><option value="600000">600 000 €</option><option value="900000">900 000 €</option></select>
+      </div>
+      <div class="filters__meta">
+        <span class="filters__count" data-count aria-live="polite">—</span>
+        <button type="button" class="filters__reset" data-reset>Zrušiť filtre</button>
+        <div class="toggle" role="group" aria-label="Zobrazenie">
+          <button type="button" data-view="table" aria-label="Zobraziť ako tabuľku"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+          <button type="button" data-view="cards" aria-label="Zobraziť ako karty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<section class="section section--tight">
+  <div class="shell">
+    <div class="table-wrap" data-table>
+      <table class="units">
+        <caption class="sr-only">Zoznam bytov v projekte Rezidencia Aurora</caption>
+        <thead><tr><th scope="col"><button type="button" data-sort="id">Byt</button></th><th scope="col">Dispozícia</th><th scope="col"><button type="button" data-sort="floor">Podlažie</button></th><th scope="col"><button type="button" data-sort="area">Interiér m²</button></th><th scope="col"><button type="button" data-sort="ext">Exteriér m²</button></th><th scope="col"><button type="button" data-sort="total">Spolu m²</button></th><th scope="col">Orientácia</th><th scope="col"><button type="button" data-sort="status">Stav</button></th><th scope="col"><button type="button" data-sort="price">Cena</button></th><th scope="col"><span class="sr-only">Detail</span></th></tr></thead>
+        <tbody data-rows></tbody>
+      </table>
+    </div>
+    <div class="cards" data-cards hidden></div>
+    <div class="empty" data-empty hidden>
+      <h3>Žiadny byt nezodpovedá filtrom</h3>
+      <p class="lede" style="margin-inline:auto">Skúste uvoľniť niektorý z filtrov — alebo nám napíšte a nájdeme vám najbližšiu alternatívu.</p>
+      <p><a class="btn btn--ghost" href="kontakt.html">Napísať nám</a></p>
+    </div>
+  </div>
+</section>
+
+<section class="section section--ink">
+  <div class="shell">
+    <div class="grid-2">
+      <div>
+        <p class="eyebrow">Rezervácia</p>
+        <h2>Vyberte si byt<br>skôr než to<br><em style="font-style:italic;color:var(--sand-2)">urobí niekto iný</em></h2>
+      </div>
+      <div>
+        <p class="lede">Aktuálne je voľných <strong data-count-free>—</strong> z päťdesiatich bytov. Ozvite sa nám a dohodneme si osobnú obhliadku alebo online konzultáciu — prevedieme vás dispozíciami, výhľadmi aj možnosťami financovania.</p>
+        <div class="hero__actions" style="margin-top:26px">
+          <a class="btn btn--light" href="kontakt.html">Nezáväzne sa informovať <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn btn--onink" href="byty.html">Prezrieť ponuku</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer class="foot">
+  <div class="shell shell-wide">
+    <div class="foot__grid">
+      <div>
+        <div class="foot__brand">Rezidencia Aurora</div>
+        <p style="color:var(--text-inv-muted);max-width:36ch;font-size:.95rem">
+          Päťdesiat bytov v Starom Meste. Tichá ulica, výhľad na mesto, päť minút pešo od nábrežia.
+        </p>
+        <div class="badge-row" style="margin-top:22px">
+          <span class="badge">Placeholder 12, Bratislava</span>
+        </div>
+      </div>
+      <div>
+        <h4>Navigácia</h4>
+        <ul>
+          <li><a href="projekt.html">Projekt</a></li>
+          <li><a href="byty.html">Ponuka bytov</a></li>
+          <li><a href="lokalita.html">Lokalita</a></li>
+          <li><a href="galeria.html">Galéria</a></li>
+          <li><a href="kontakt.html">Kontakt</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Predaj</h4>
+        <ul>
+          <li><a href="tel:+421900000000">+421 900 000 000</a></li>
+          <li><a href="mailto:info@rezidencia-aurora.sk">info@rezidencia-aurora.sk</a></li>
+          <li><span style="color:var(--text-inv-muted);font-size:.92rem">Po – Pi, 9:00 – 18:00</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot__bottom">
+      <span>© <span data-year>2026</span> Rezidencia Aurora. Všetky práva vyhradené.</span>
+      <span>Vizualizácie sú ilustračné. Uvedené výmery a ceny sú projektové a nie sú návrhom na uzavretie zmluvy.</span>
+    </div>
+  </div>
+</footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/site.js"></script>
+<script src="assets/js/motion.js"></script>
+<script src="assets/js/list.js"></script>
+</body>
+</html>
