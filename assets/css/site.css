@@ -74,6 +74,11 @@ body {
 }
 
 img, svg, video { max-width: 100%; display: block; }
+
+/* Any explicit `display` on a component beats the UA rule for [hidden], which
+   silently defeats el.hidden = true. Several components set display, so make
+   the attribute authoritative once, here. */
+[hidden] { display: none !important; }
 a { color: inherit; }
 
 h1, h2, h3, h4 {
@@ -460,7 +465,90 @@ body[data-locked="true"] { overflow: hidden; }
   -webkit-backdrop-filter: blur(12px);
   border-block: 1px solid var(--line-soft);
 }
-.filters__inner { display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: flex-end; padding-block: 16px; }
+.filters__inner { display: flex; flex-direction: column; gap: 12px; padding-block: 12px; }
+.filters__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.filters__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+/* the field set collapses behind a Filtre button on phones — left open it
+   pinned ~326px of filter UI under the nav and ate half the screen */
+.filters__toggle {
+  display: inline-flex; align-items: center; gap: 9px;
+  min-height: 44px; padding: 10px 16px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-sm);
+  font-family: var(--f-ui); font-size: .76rem; letter-spacing: .12em; text-transform: uppercase;
+  font-weight: 500; color: var(--ink); cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+.filters__toggle:hover { border-color: var(--sand); }
+.filters__toggle svg { width: 17px; height: 17px; }
+.filters__toggle[aria-expanded="true"] { background: var(--ink); color: var(--text-inv); border-color: var(--ink); }
+.filters__badge {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: 100px; background: var(--sand); color: var(--ink);
+  font-size: .68rem; font-weight: 600; letter-spacing: 0;
+}
+.filters__toggle[aria-expanded="true"] .filters__badge { background: var(--sand-2); }
+
+/* --- phone: the field set is a bottom sheet ------------------------------
+   Inline, it pinned ~310px of filter UI under the nav on every scroll.       */
+@media (max-width: 759px) {
+  .filters__fields {
+    position: fixed; inset: auto 0 0 0; z-index: var(--z-modal);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start; gap: 14px;
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+    border-radius: 16px 16px 0 0;
+    padding: 18px 20px calc(20px + env(safe-area-inset-bottom));
+    box-shadow: 0 -20px 60px -22px rgba(20, 18, 15, .5);
+    max-height: 78svh; overflow-y: auto;
+    transform: translateY(101%);
+    transition: transform .34s cubic-bezier(.22,1,.36,1);
+  }
+  .filters[data-open="true"] .filters__fields { transform: translateY(0); }
+  .filters__fields .field:last-of-type { grid-column: 1 / -1; }
+
+  .filters__scrim {
+    position: fixed; inset: 0; z-index: calc(var(--z-modal) - 1);
+    background: rgba(20, 18, 15, .42);
+    opacity: 0; transition: opacity .3s ease;
+  }
+  .filters[data-open="true"] .filters__scrim { opacity: 1; }
+
+  .filters__sheet-head {
+    grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 2px;
+  }
+  .filters__sheet-head span {
+    font-size: .72rem; letter-spacing: .18em; text-transform: uppercase;
+    font-weight: 600; color: var(--text-muted);
+  }
+  .filters__sheet-close {
+    width: 44px; height: 44px; margin-right: -10px; display: grid; place-items: center;
+    background: none; border: 0; color: var(--text-muted); cursor: pointer;
+  }
+  .filters__sheet-close svg { width: 18px; height: 18px; }
+  .filters__apply { grid-column: 1 / -1; margin-top: 4px; }
+
+  .filters__count { margin-left: auto; }
+  /* a 940px table cannot work on a phone — cards only */
+  .filters .toggle { display: none; }
+
+  /* backdrop-filter makes an element a containing block for fixed-position
+     descendants, which trapped the sheet and scrim inside the 68px bar */
+  .filters { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--paper); }
+}
+
+@media (min-width: 760px) {
+  .filters__scrim, .filters__sheet-head, .filters__apply { display: none; }
+}
+
+@media (min-width: 760px) {
+  .filters__inner { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 14px 20px; padding-block: 16px; }
+  .filters__fields { display: flex; flex-wrap: wrap; gap: 14px 20px; flex: 1 1 auto; order: -1; }
+  .filters__bar { margin-left: auto; }
+  .filters__toggle { display: none; }
+}
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 128px; flex: 1 1 128px; }
 .field label { font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; color: var(--text-muted); font-weight: 500; }
 .field select, .field input {
@@ -475,8 +563,7 @@ body[data-locked="true"] { overflow: hidden; }
   padding-right: 34px;
 }
 .field select:hover, .field input:hover { border-color: var(--sand); }
-.filters__meta { display: flex; align-items: center; gap: 16px; margin-left: auto; padding-bottom: 2px; }
-.filters__count { font-size: .8rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.filters__count { font-size: .82rem; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .filters__reset { background: none; border: 0; cursor: pointer; font-family: var(--f-ui);
   font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted);
   text-decoration: underline; text-underline-offset: 4px; padding: 10px 2px; min-height: 44px; }
@@ -585,7 +672,10 @@ table.rooms tfoot td { font-weight: 600; border-bottom: 0; border-top: 1px solid
 
 /* placeholder tile (photos / tour not available yet) */
 .ph {
-  position: relative; display: grid; place-items: center; gap: 12px; text-align: center;
+  /* place-items centres each row but leaves the rows stretched apart, which
+     spread the icon/title/caption over a tall tile — align-content fixes it */
+  position: relative; display: grid; place-items: center; align-content: center;
+  gap: 12px; text-align: center;
   background:
     repeating-linear-gradient(-45deg, transparent 0 11px, rgba(20,18,15,.035) 11px 22px),
     var(--paper-2);
@@ -671,6 +761,13 @@ table.rooms tfoot td { font-weight: 600; border-bottom: 0; border-top: 1px solid
   transition: border-color .2s ease, box-shadow .2s ease;
 }
 .form textarea { min-height: 140px; resize: vertical; line-height: 1.6; }
+/* match the chevron used by the filter selects instead of the native arrow */
+.form select {
+  appearance: none; -webkit-appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235C544A' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; background-size: 16px;
+  padding-right: 40px;
+}
 .form input:hover, .form textarea:hover, .form select:hover { border-color: var(--sand-2); }
 .form input:focus, .form textarea:focus, .form select:focus {
   outline: none; border-color: var(--sand); box-shadow: 0 0 0 3px rgba(169,140,100,.18);
@@ -1028,3 +1125,106 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
 .legend__item--static:hover { color: var(--text-muted); }
 .legend__item--static:hover .legend__dot { transform: none; }
 .legend__dot--this { background: var(--ink); }
+
+/* ===========================================================================
+   MOBILE
+   Everything below is phone-specific correction. Audited at 320 / 375 / 430.
+   =========================================================================== */
+
+/* a shorter bar buys back real estate on a small screen */
+@media (max-width: 899px) {
+  :root { --nav-h: 64px; }
+}
+
+/* --- touch targets: 44px minimum, 8px apart ----------------------------- */
+@media (hover: none), (max-width: 899px) {
+  .brand          { padding-block: 10px; }
+  .legend__item   { padding-block: 11px; }
+  .crumbs a       { padding-block: 12px; }
+  .foot ul        { gap: 2px; }
+  .foot ul a      { display: inline-block; padding-block: 13px; }
+  .drawer__foot a { display: inline-block; padding-block: 12px; }
+  .filters__reset { padding-inline: 4px; }
+
+  /* These links use a border-bottom as their underline, so padding would
+     detach it. Grow the hit area with a pseudo-element instead. */
+  .link-arrow, .contact-list dd a { position: relative; }
+  .link-arrow::after, .contact-list dd a::after {
+    content: ""; position: absolute; left: -8px; right: -8px; top: -12px; bottom: -12px;
+  }
+
+  .form .consent input { width: 24px; height: 24px; min-height: 24px; }
+  .form .consent { padding-block: 4px; }
+}
+
+/* --- the apartment card the facade opens becomes a bottom sheet ---------- */
+@media (max-width: 899px) {
+  .tip {
+    position: fixed; z-index: var(--z-modal);
+    left: 0 !important; right: 0; top: auto !important; bottom: 0;
+    width: auto; max-width: none;
+    border-radius: 14px 14px 0 0;
+    border: 0; border-top: 1px solid var(--line);
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    box-shadow: 0 -18px 50px -20px rgba(20, 18, 15, .45);
+    transform: translateY(100%) !important;
+    transition: transform .34s cubic-bezier(.22,1,.36,1), opacity .2s ease;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .tip[data-show="true"] { transform: translateY(0) !important; }
+  .tip__id { font-size: 2.1rem; }
+  .tip__rows { font-size: .95rem; gap: 8px; }
+  .tip__row dt, .tip__row dd { font-size: .95rem; }
+  /* the sheet carries a real button, so an imprecise tap costs nothing */
+  .tip__cta { display: none; }
+  .tip__actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 16px; }
+  .tip__actions .btn { width: 100%; }
+  .tip__close {
+    width: 48px; height: 48px; display: grid; place-items: center;
+    background: none; border: 1px solid var(--line); border-radius: var(--r-sm);
+    color: var(--text-muted); cursor: pointer;
+  }
+  .tip__close svg { width: 18px; height: 18px; }
+}
+@media (min-width: 900px) { .tip__actions, .tip__close { display: none; } }
+
+/* --- landing --------------------------------------------------------------- */
+@media (max-width: 899px) {
+  .hero__stat b { font-size: clamp(1.5rem, 7vw, 2rem); }
+  .hero__stat   { padding: 14px 6px 16px; }
+  /* floor captions sit outside the framed area on a phone and get clipped */
+  .picker__floorlabel { display: none; }
+  /* the facade is an overview at this size; the floor list is the way in */
+  .floorstrip-wrap { margin-top: 22px; }
+  .floorstrip__row { min-height: 52px; }
+  .figure  { padding: 24px 20px; }
+  .feature { padding: 26px 22px 28px; }
+}
+
+/* --- apartment detail ---------------------------------------------------- */
+@media (max-width: 999px) {
+  .aside { position: static; }
+}
+@media (max-width: 899px) {
+  .ph--tall { min-height: 320px; }
+  .gallery .ph { min-height: 210px; }
+  .plan { padding: 12px; min-height: 0; }
+  .plan svg { max-width: none; }
+  .mini { padding: 14px; }
+  .compass-card { gap: 14px; padding: 16px; }
+  .compass { width: 76px; }
+  .spec__item { padding: 16px 18px; }
+  .spec__item dd { font-size: 1.4rem; }
+  .detail-nav { gap: 10px; }
+  .detail-nav .link-arrow { font-size: .74rem; }
+}
+
+/* --- very small phones (320px) ------------------------------------------- */
+@media (max-width: 359px) {
+  .filters__fields { grid-template-columns: 1fr; }
+  .filters__fields .field:last-child { grid-column: auto; }
+  .hero__stats-grid { grid-template-columns: 1fr 1fr; }
+  .btn { padding-inline: 20px; font-size: .74rem; }
+  .brand__sub { display: none; }
+}

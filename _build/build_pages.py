@@ -27,6 +27,10 @@ NAME = "Rezidencia Aurora"
 # robots.txt. Set to False for the real launch.
 PREVIEW = True
 
+# Bump this whenever CSS/JS changes so browsers (and the client's phone)
+# do not serve a stale cached copy. Appended as ?v= to every asset link.
+ASSET_V = "10"
+
 NAV = [
     ("projekt.html", "Projekt"),
     ("byty.html", "Byty"),
@@ -55,6 +59,7 @@ I = {
  "tap": '<path d="M9 11V6a2 2 0 1 1 4 0v8"/><path d="M13 12a2 2 0 1 1 4 0v1M17 13a2 2 0 1 1 4 0v3a5 5 0 0 1-5 5h-2.5a5 5 0 0 1-4.3-2.5L6 15"/>',
  "grid": '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
  "rows": '<path d="M3 6h18M3 12h18M3 18h18"/>',
+ "sliders": '<path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h10M18 18h2"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="18" r="2"/>',
  "train": '<rect x="5" y="3" width="14" height="13" rx="3"/><path d="M9 3v13M15 3v13M5 10h14M7 20l-2 2M17 20l2 2"/><circle cx="9" cy="19" r="0"/>',
 }
 
@@ -84,7 +89,7 @@ def head(title, desc, page, extra=""):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/site.css">
+<link rel="stylesheet" href="assets/css/site.css?v={ASSET_V}">
 {extra}</head>
 <body>
 <a class="skip-link" href="#main">Preskočiť na obsah</a>
@@ -165,11 +170,10 @@ FOOT = f'''<footer class="foot">
 '''
 
 def scripts(*extra):
-    s = ('<script src="assets/js/data.js"></script>\n'
-         '<script src="assets/js/site.js"></script>\n'
-         '<script src="assets/js/motion.js"></script>\n')
+    s = ''.join(f'<script src="assets/js/{n}?v={ASSET_V}"></script>\n'
+                for n in ('data.js', 'site.js', 'motion.js'))
     for e in extra:
-        s += f'<script src="assets/js/{e}"></script>\n'
+        s += f'<script src="assets/js/{e}?v={ASSET_V}"></script>\n'
     return s + "</body>\n</html>\n"
 
 def ph(title, note, cls="", ico="camera"):
@@ -504,6 +508,27 @@ def byty_html():
 <div class="filters">
   <div class="shell">
     <form class="filters__inner" role="search" aria-label="Filtrovanie bytov" onsubmit="return false">
+      <div class="filters__bar">
+        <button type="button" class="filters__toggle" data-filter-toggle
+                aria-expanded="false" aria-controls="filter-fields">
+          {svg("sliders")}<span>Filtre</span>
+          <span class="filters__badge" data-filter-badge hidden></span>
+        </button>
+        <span class="filters__count" data-count aria-live="polite">—</span>
+        <button type="button" class="filters__reset" data-reset>Zrušiť filtre</button>
+        <div class="toggle" role="group" aria-label="Zobrazenie">
+          <button type="button" data-view="table" aria-label="Zobraziť ako tabuľku">{svg("rows")}</button>
+          <button type="button" data-view="cards" aria-label="Zobraziť ako karty">{svg("grid")}</button>
+        </div>
+      </div>
+
+      <div class="filters__scrim" data-filter-scrim hidden></div>
+
+      <div class="filters__fields" id="filter-fields">
+      <div class="filters__sheet-head">
+        <span>Filtre</span>
+        <button type="button" class="filters__sheet-close" data-filter-close aria-label="Zavrieť filtre">{svg("x")}</button>
+      </div>
       <div class="field">
         <label for="f-status">Stav</label>
         <select id="f-status"><option value="">Všetky</option><option value="dostupny">Voľné</option><option value="rezervovany">Rezervované</option><option value="predany">Predané</option></select>
@@ -524,13 +549,9 @@ def byty_html():
         <label for="f-price">Cena do</label>
         <select id="f-price"><option value="">Bez limitu</option><option value="200000">200 000 €</option><option value="300000">300 000 €</option><option value="400000">400 000 €</option><option value="600000">600 000 €</option><option value="900000">900 000 €</option></select>
       </div>
-      <div class="filters__meta">
-        <span class="filters__count" data-count aria-live="polite">—</span>
-        <button type="button" class="filters__reset" data-reset>Zrušiť filtre</button>
-        <div class="toggle" role="group" aria-label="Zobrazenie">
-          <button type="button" data-view="table" aria-label="Zobraziť ako tabuľku">{svg("rows")}</button>
-          <button type="button" data-view="cards" aria-label="Zobraziť ako karty">{svg("grid")}</button>
-        </div>
+      <button type="button" class="btn btn--primary filters__apply" data-filter-close>
+        Zobraziť <span data-count>—</span>
+      </button>
       </div>
     </form>
   </div>

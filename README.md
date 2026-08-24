@@ -132,6 +132,45 @@ the change into the generator first, or just stop using it.
 python3 rezidencia/_build/build_pages.py    # run from the folder ABOVE rezidencia/
 ```
 
+**Bump `ASSET_V` in that file whenever you change CSS or JS.** It is appended
+to every asset link as `?v=N`, so the client's phone does not keep serving a
+cached stylesheet after a deploy.
+
+## Mobile
+
+Audited for horizontal overflow and touch-target size on every page at 320,
+375 and 430 px. Both are clean; the only sub-44px control is the consent
+checkbox, whose 292x44 label toggles it.
+
+Phone-specific behaviour, all in the `MOBILE` block at the end of the CSS:
+
+- **Filters are a bottom sheet.** Inline they pinned ~326px of controls under
+  the nav and ate half the screen. The sticky bar is now just
+  `Filtre · N bytov · Zrušiť`, and the fields slide up over a scrim with an
+  apply button.
+- **Card view is forced below 760px.** The table has a 940px minimum width;
+  horizontally scrolling it on a phone is not a real option, so the
+  table/card switch is hidden there. The desktop preference is remembered
+  separately and restored when the viewport grows.
+- **Tapping a flat in the facade opens a bottom sheet** with the details and a
+  full-width *Zobraziť detail* button. Hotspots are ~28x46px on a 375px screen
+  because the building is simply wide relative to a phone; the sheet makes an
+  imprecise tap cost one extra tap instead of a wrong page. The floor strip
+  under the hero is the precise route.
+- **The floor plan switches to a portrait 420x520 box** so its labels render
+  around 11px rather than 7px.
+- `--nav-h` drops to 64px.
+
+Two CSS traps worth remembering if this gets extended:
+
+1. `[hidden] { display: none !important; }` is set globally. Any component
+   with its own `display` (`.cards` had `display: grid`) otherwise ignores
+   `el.hidden = true` — that bug was shipping duplicate cards under the table.
+2. `backdrop-filter` and `transform` both make an element a containing block
+   for `position: fixed` descendants. Both had trapped a sheet inside a 68px
+   bar. `.filters` drops its blur on mobile and `.hero__vis` is only
+   transformed on desktop for this reason.
+
 ## Design system
 
 Tokens are at the top of `assets/css/site.css`.

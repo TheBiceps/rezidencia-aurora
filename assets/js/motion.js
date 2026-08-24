@@ -88,12 +88,20 @@ function initHeroScroll() {
     if (window.ResizeObserver) new ResizeObserver(setH).observe(stats);
   }
 
+  /* A transform on .hero__vis would make it the containing block for the
+     unit sheet, which is position:fixed on phones. Desktop only. */
+  const wide = window.matchMedia('(min-width: 900px)');
+
   onFrame(() => {
     const h = hero.offsetHeight;
     const p = clamp01(window.scrollY / Math.max(h * 0.85, 1));
     content.style.transform = `translate3d(0, ${(p * -54).toFixed(1)}px, 0)`;
     content.style.opacity = (1 - p * 1.25).toFixed(3);
-    vis.style.transform = `translate3d(0, ${(p * 40).toFixed(1)}px, 0) scale(${(1 + p * 0.05).toFixed(4)})`;
+    if (wide.matches) {
+      vis.style.transform = `translate3d(0, ${(p * 40).toFixed(1)}px, 0) scale(${(1 + p * 0.05).toFixed(4)})`;
+    } else if (vis.style.transform) {
+      vis.style.transform = '';
+    }
   });
 }
 

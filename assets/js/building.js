@@ -412,7 +412,7 @@ function initPicker(root) {
   const labels = [...hotEl.querySelectorAll('.picker__floorlabel')];
   const byId = Object.fromEntries(APARTMENTS.map(a => [a.id, a]));
   const isTouch = window.matchMedia('(hover: none)').matches;
-  let armed = null;   // on touch: the unit a second tap will open
+  const sheet = window.matchMedia('(max-width: 899px)');
 
   /* one-off intro sweep so the affordance is obvious without instructions */
   if (!calm) {
@@ -425,7 +425,6 @@ function initPicker(root) {
     labels.forEach(l => l.classList.remove('is-on'));
     if (tip) tip.dataset.show = 'false';
     root.classList.remove('is-picking', 'is-legend');
-    armed = null;
   }
 
   function show(rect) {
@@ -452,7 +451,21 @@ function initPicker(root) {
          <div class="tip__row"><dt>Orientácia</dt><dd>${a.orientation}</dd></div>
          <div class="tip__row"><dt>Cena</dt><dd>${fmtPrice(a.price, a.status)}</dd></div>
        </dl>
-       <div class="tip__cta">${a.status === 'predany' ? 'Predané' : (isTouch ? 'Ťuknite znova pre detail' : 'Kliknite pre detail bytu')}</div>`;
+       <div class="tip__cta">${a.status === 'predany' ? 'Predané' : 'Kliknite pre detail bytu'}</div>
+       <div class="tip__actions">
+         ${a.status === 'predany'
+           ? `<span class="btn btn--ghost" aria-disabled="true">Predané</span>`
+           : `<a class="btn btn--primary" href="byt.html?id=${encodeURIComponent(a.id)}">Zobraziť detail</a>`}
+         <button type="button" class="tip__close" data-tip-close aria-label="Zavrieť">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+         </button>
+       </div>`;
+
+    const closeBtn = tip.querySelector('[data-tip-close]');
+    if (closeBtn) closeBtn.addEventListener('click', clear);
+
+    tip.dataset.show = 'true';
+    if (sheet.matches) return;   // docked sheet: CSS handles placement
 
     const rb = rect.getBoundingClientRect();
     const rootB = root.getBoundingClientRect();
@@ -461,7 +474,6 @@ function initPicker(root) {
     left = Math.min(Math.max(left, w / 2 + 12), rootB.width - w / 2 - 12);
     tip.style.left = left + 'px';
 
-    tip.dataset.show = 'true';
     const h = tip.offsetHeight;
     const above = rb.top - rootB.top - 14;
     const below = above + rb.height + 28;
@@ -481,7 +493,9 @@ function initPicker(root) {
     rect.addEventListener('blur', clear);
     rect.addEventListener('click', e => {
       e.preventDefault();
-      if (isTouch && armed !== rect) { show(rect); armed = rect; return; }
+      /* touch: show the sheet and let its button do the navigating, so a
+         mis-tap on a ~28px hotspot costs one tap instead of a wrong page */
+      if (isTouch) { show(rect); return; }
       open(rect);
     });
     rect.addEventListener('keydown', e => {
@@ -490,7 +504,9 @@ function initPicker(root) {
   });
 
   hotEl.addEventListener('mouseleave', () => { if (!isTouch) clear(); });
-  document.addEventListener('click', e => { if (isTouch && !hotEl.contains(e.target)) clear(); });
+  document.addEventListener('click', e => {
+    if (isTouch && !hotEl.contains(e.target) && !(tip && tip.contains(e.target))) clear();
+  });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') clear(); });
 
   /* hovering a legend entry lights up every unit with that status */

@@ -9,7 +9,7 @@ function initList() {
   const tbody = root.querySelector('[data-rows]');
   const cards = root.querySelector('[data-cards]');
   const empty = root.querySelector('[data-empty]');
-  const count = root.querySelector('[data-count]');
+  const counts = root.querySelectorAll('[data-count]');
   const tableWrap = root.querySelector('[data-table]');
 
   const f = {
@@ -20,8 +20,13 @@ function initList() {
     price: root.querySelector('#f-price'),
   };
 
+  const phone = window.matchMedia('(max-width: 759px)');
+
   let sort = { key: 'id', dir: 'asc' };
-  let view = localStorage.getItem('aurora-view') || 'table';
+  /* a 940px-wide table is unusable on a phone, so cards are forced there
+     regardless of the remembered preference */
+  let stored = localStorage.getItem('aurora-view') || 'table';
+  let view = phone.matches ? 'cards' : stored;
 
   /* prefill from the URL — the hero floor strip links in with ?floor=4 */
   const params = new URLSearchParams(location.search);
@@ -90,10 +95,12 @@ function initList() {
 
     tbody.innerHTML = rows.map(rowHTML).join('');
     cards.innerHTML = rows.map(cardHTML).join('');
-    count.textContent = `${rows.length} ${plural(rows.length, 'byt', 'byty', 'bytov')}`;
+    const label = `${rows.length} ${plural(rows.length, 'byt', 'byty', 'bytov')}`;
+    counts.forEach(el => { el.textContent = label; });
     empty.hidden = rows.length > 0;
-    tableWrap.hidden = view !== 'table' || !rows.length;
-    cards.hidden = view !== 'cards' || !rows.length;
+    const v = phone.matches ? 'cards' : view;
+    tableWrap.hidden = v !== 'table' || !rows.length;
+    cards.hidden = v !== 'cards' || !rows.length;
 
     tbody.querySelectorAll('tr[data-href]').forEach(tr => {
       tr.addEventListener('click', e => {
@@ -123,6 +130,7 @@ function initList() {
   root.querySelectorAll('[data-view]').forEach(btn => {
     btn.addEventListener('click', () => {
       view = btn.dataset.view;
+      stored = view;
       localStorage.setItem('aurora-view', view);
       root.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
       render();
@@ -130,13 +138,56 @@ function initList() {
     btn.setAttribute('aria-pressed', String(btn.dataset.view === view));
   });
 
-  Object.values(f).forEach(el => el && el.addEventListener('change', render));
+  /* --- mobile filter drawer --------------------------------------------- */
+  const bar = root.querySelector('.filters');
+  const fToggle = root.querySelector('[data-filter-toggle]');
+  const badge = root.querySelector('[data-filter-badge]');
+
+  const activeCount = () => Object.values(f).filter(el => el && el.value).length;
+
+  function syncBadge() {
+    if (!badge) return;
+    const n = activeCount();
+    badge.textContent = n;
+    badge.hidden = n === 0;
+  }
+
+  const scrim = root.querySelector('[data-filter-scrim]');
+
+  function setSheet(open) {
+    bar.dataset.open = String(open);
+    if (fToggle) fToggle.setAttribute('aria-expanded', String(open));
+    if (scrim) scrim.hidden = !open;
+    if (phone.matches) document.body.dataset.locked = String(open);
+  }
+
+  if (fToggle && bar) {
+    fToggle.addEventListener('click', () => setSheet(bar.dataset.open !== 'true'));
+    root.querySelectorAll('[data-filter-close]').forEach(b =>
+      b.addEventListener('click', () => setSheet(false)));
+    if (scrim) scrim.addEventListener('click', () => setSheet(false));
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && bar.dataset.open === 'true') setSheet(false);
+    });
+  }
+
+  Object.values(f).forEach(el => el && el.addEventListener('change', () => { syncBadge(); render(); }));
   const reset = root.querySelector('[data-reset]');
   reset && reset.addEventListener('click', () => {
     Object.values(f).forEach(el => { if (el) el.value = ''; });
     history.replaceState(null, '', location.pathname);
+    syncBadge();
     render();
   });
+
+  /* crossing the breakpoint swaps the view without a reload */
+  const onBreak = () => {
+    if (!phone.matches) { view = stored; setSheet(false); }
+    render();
+  };
+  phone.addEventListener ? phone.addEventListener('change', onBreak) : phone.addListener(onBreak);
+
+  syncBadge();
 
   render();
 }
