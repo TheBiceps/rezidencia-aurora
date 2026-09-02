@@ -27,7 +27,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "21"
+ASSET_V = "22"
 
 # Brief §15: show the milestone table only with confirmed dates; otherwise
 # leave the section out. Fill in to render it, e.g.

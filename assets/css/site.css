@@ -1669,7 +1669,14 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
   .manifest h2 { font-size: clamp(2.4rem, 11vw, 3.4rem); }
   .cta-slim__text { font-size: 1.35rem; }
   .fivemin__controls { margin-bottom: 14px; }
-  .seg button { padding: 0 13px; font-size: .66rem; }
+  /* four labels do not fit one pill at 375px — a 2×2 block keeps them whole */
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; border: 0; border-radius: var(--r-md); background: var(--line-inv); }
+  .seg button { padding: 0 10px; font-size: .66rem; background: var(--ink); border-left: 0 !important; min-height: 48px; }
+  .seg button[aria-pressed="true"] { background: var(--paper); }
+  .seg button:first-child { border-top-left-radius: var(--r-md); }
+  .seg button:nth-child(2) { border-top-right-radius: var(--r-md); }
+  .seg button:nth-child(3) { border-bottom-left-radius: var(--r-md); }
+  .seg button:last-child { border-bottom-right-radius: var(--r-md); }
 }
 
 @media (prefers-reduced-motion: reduce) {
