@@ -1,8 +1,11 @@
 /* ---------------------------------------------------------------------------
- * REZIDENCIA AURORA — apartment data
+ * P6 — apartment data
  *
  * ⚠️  DEMO / PLACEHOLDER DATA — replace every record with the real unit list.
  *     Keep the field names, everything on the site reads from this one file.
+ *     The client brief (P6_zmeny.docx) is explicit that no fictional unit,
+ *     floor or m² figures may appear in copy. Aggregates from this file are
+ *     therefore NOT quoted anywhere on the site until it holds real data.
  *
  *   id          "4.03"  — unit code (floor.index), also used in the URL
  *   floor       1-8
@@ -25,10 +28,11 @@
 const SHOW_PRICES = true;
 
 const BUILDING = {
-  name: "Rezidencia Aurora",
-  street: "Placeholder 12",
+  name: "P6",
+  street: "Prievozská 6",
   city: "Bratislava",
-  district: "Staré Mesto",
+  district: "Ružinov",
+  /* geometry of the placeholder facade — NOT confirmed P6 parameters */
   floors: 8,
   bays: 7,
   totalUnits: 50,

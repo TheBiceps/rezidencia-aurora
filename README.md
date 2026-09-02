@@ -1,8 +1,13 @@
-# Rezidencia Aurora — website
+# P6 — Prievozská 6, Bratislava
 
-Static site for a single residential building in Bratislava. No build step, no
-dependencies: plain HTML + one stylesheet + four small scripts. Open
-`index.html` or serve the folder.
+Static site for P6, a single residential building at Prievozská 6,
+Bratislava-Ružinov. No build step, no dependencies: plain HTML + one stylesheet
++ a handful of small scripts. Open `index.html` or serve the folder.
+
+**Structure follows the client brief `P6_zmeny.docx` section by section.** The
+landing page is one location-first narrative in the brief's order (§1–§16);
+`lokalita.html` and `projekt.html` redirect into its chapters. Section numbers
+in the HTML comments and in `_build/build_pages.py` are the brief's.
 
 Local preview:
 
@@ -22,7 +27,7 @@ with the sitemap reference.
 
 ## Deploying
 
-The repo is the site — GitHub Pages serves it straight from `main`. To publish
+The repo is the site — GitHub Pages serves it straight from `main`. (The repo is still named `rezidencia-aurora` from the placeholder phase; rename it and the URL changes.) To publish
 a change:
 
 ```bash
@@ -36,13 +41,12 @@ filtered by Jekyll.
 
 | File | Purpose |
 |---|---|
-| `index.html` | Landing page. Hero = interactive facade; hovering / tapping a unit shows its card, clicking opens the detail. |
-| `byty.html` | Full unit list. Filter by status, layout, floor, area, price. Table ⇄ card view, sortable columns. Accepts `?floor=`, `?rooms=`, `?status=`. |
-| `byt.html?id=4.03` | Single-unit detail: specs, schematic plan, room areas, price, prev/next, similar units. |
-| `projekt.html` | About the building, standard, timeline, layout typologies. |
-| `lokalita.html` | Location, amenities, views. |
-| `galeria.html` | Gallery. |
-| `kontakt.html` | Contact form. Accepts `?byt=4.03` to prefill. |
+| `index.html` | The whole narrative: hero → orientation map → manifesto → Miletička → business zone → five-minute city → school → Nivy → sport → architecture → community terrace → parameters → standard → units → closing block. Sticky chapter nav (Lokalita / Projekt / Štandard / Byty). |
+| `byty.html` | Unit cards with a floor-plan thumbnail; filters exactly per the brief: rooms, floor, area, terrace/balcony, orientation, availability. No table. |
+| `byt.html?id=4.03` | Unit detail: specs, plan linked to the room table, compass, position map, similar units, sticky price bar on phones. |
+| `galeria.html` | Photo placeholders for the shots the brief asks for (Miletička, cyclist, Nivy at night, school run, terrace). |
+| `kontakt.html` | Contact form + FAQ. `?byt=4.03` prefills the unit; `?katalog=1` prefills a catalogue request (the "Stiahnuť katalóg" CTA lands here until a PDF exists). |
+| `lokalita.html`, `projekt.html` | Instant redirects to `index.html#lokalita` / `#projekt` so old links keep working. |
 
 ## The one file you edit
 
@@ -60,24 +64,40 @@ Per-unit, `price: null` renders "Cena na vyžiadanie" for just that unit.
 ⚠️ The current 50 records are **placeholder data** generated for layout
 purposes. Replace them with the real unit list.
 
-## Placeholders still to fill
+## What the brief demands and what is still pending
 
-- **Building visualisation.** `assets/js/building.js` draws the facade as SVG
-  from the same geometry that positions the clickable hotspots, so the two
-  cannot drift apart. When the real render arrives, put it behind
-  `.hero__vis` and keep this file for the hotspot layer only — then nudge the
-  `ART` constants at the top until the rects land on the real windows.
-- **Photos and virtual tours.** Every `.ph` block is a labelled placeholder
-  tile. Search the HTML for `class="ph` to find them all.
-- **Floor plans.** `planSVG()` in `assets/js/detail.js` draws a schematic from
-  `roomList`. Swap it for the real PDF/PNG plans when available.
-- **Map.** `lokalita.html` has a `.map-frame` ready for a Maps embed.
-- **Contact form.** `initForms()` in `assets/js/site.js` currently just shows
-  the success state. Point it at a real endpoint (Formspree / API / CRM webhook).
-- **Copy and figures.** Project name, street address, phone, e-mail, timeline,
-  distances and the standard description are all placeholder text.
-- **Domain.** Canonical/OG URLs and `sitemap.xml` use
-  `https://rezidencia-aurora.sk`.
+Done exactly as the brief states:
+
+- Copy for every section, verbatim where the brief supplies it.
+- Fictional figures (50 bytov / 8 podlaží / 33–178 m²) removed from all copy,
+  the hero, meta tags and schema.org. §12 lists the parameter categories with
+  *Upresníme* until real values exist.
+- §15 Harmonogram hidden. Set `MILESTONES` in `_build/build_pages.py` to show
+  the five-milestone table and its chapter link.
+- Interim CTAs after location and after the project; three CTAs in the close.
+- Alternating light/dark chapters; higher contrast on small text; wider
+  content on large monitors; tighter vertical rhythm; sticky chapter nav;
+  mobile keeps the figures, the map, the route and the unit rail horizontally
+  scrollable and ships shortened copy (`.long` / `.short`).
+
+Still placeholder — the client must supply these:
+
+- **Real visualisation of P6 with the Downtown panorama** (brief §1). The hero
+  keeps the generated facade as an *illustrative* stand-in, labelled as such.
+  It is also what powers the interactive unit selector; both are demo geometry.
+- **Photos**: Miletička (authentic, not a render), cyclist, Nivy at night,
+  school run, community terrace, material shots for the six standard cards.
+- **Project parameters** (§12) and the real **unit list** for `data.js`.
+- **Standard** (§13) — six cards are written concretely but the building's
+  actual standard is unconfirmed; the section says so on the page.
+- **Harmonogram dates** (§15).
+- **Catalogue PDF** (§16) — wire the href in `final_block()`.
+- **Map distances**: `assets/js/map.js` holds each place's km estimate from
+  Prievozská 6; every time on the page derives from it. Verify before launch.
+  Positions on the map are schematic, not geographic.
+- Domain, e-mail and phone are placeholders (`prievozska6.sk`).
+- International programmes at Novohradská are listed only as a category —
+  the brief says use school-confirmed information only.
 
 ## Interaction
 
@@ -96,13 +116,16 @@ Nothing here is decorative-only; each piece is doing a job.
   if it is ever wanted back.)
 - Counters count up when they come into view.
 
-**Scrollytelling — "Dom po podlažiach"** (`[data-scrolly]` on the landing page)
-- The building is pinned while five steps scroll past; each highlights the
-  storeys it talks about.
-- The sky runs from late morning to dusk across the section and the windows
-  light up as it gets dark — driven by `setSkyTime()` in `building.js`.
-- Steps, sky and the progress rail all come off one shared scroll loop
-  (`onFrame` in `motion.js`), so there is a single rAF per frame.
+**Five-minute city** (`[data-citymap="interactive"]`, `assets/js/map.js`)
+- Toggle Pešo / Bicyklom / Kolobežkou / Autom; every place on the map gets a
+  time, copper for ≤5 min, light for ≤15, dimmed beyond. Category chips
+  filter. The list on the right sorts by time and links to the dots on hover.
+- The same component draws the static orientation map in §2.
+- The business-zone route (§5) reads its times from the same km data.
+
+(The former storey-by-storey scrollytelling section was removed: the brief
+rules out claims about setbacks and penthouses until the architecture is
+confirmed. `initScrolly()` still exists and is a no-op without markup.)
 
 **Apartment detail**
 - Hovering a room in the plan highlights its row in the table, and vice versa.
@@ -208,12 +231,14 @@ Tokens are at the top of `assets/css/site.css`.
 |---|---|
 | `data.js` | the 50 units + `SHOW_PRICES` / `BUILDING` switches |
 | `site.js` | shared helpers, navigation, drawer, forms |
-| `building.js` | facade geometry, SVG generation, sky/time, hero selector |
-| `motion.js` | reveal, count-up, parallax, spotlight, scrollytelling |
-| `list.js` | filtering, sorting, table ⇄ card views |
-| `detail.js` | single-unit page, plan, compass, position map |
+| `plan.js` | schematic floor plans — full on the detail page, compact thumbnails on cards |
+| `map.js` | schematic city map, five-minute city, business-zone route |
+| `building.js` | placeholder facade geometry, SVG generation, hero selector |
+| `motion.js` | reveal, count-up, spotlight, chapter scroll-spy |
+| `list.js` | unit cards + the brief's six filters (also exports `unitCardHTML`) |
+| `detail.js` | single-unit page, compass, position map, sticky CTA |
 
-Load order matters: `data.js → site.js → motion.js → building.js → page script`.
+Load order matters: `data.js → site.js → motion.js → plan.js → (map.js | building.js | list.js | detail.js)`.
 
 Two facades can appear on one page (hero + scrollytelling), so **SVG gradient
 ids are namespaced per mount** (`mountFacade(el, { ns: 'scrolly' })`). Reusing a

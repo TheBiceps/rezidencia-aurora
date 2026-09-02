@@ -1,85 +1,8 @@
 /* ---------------------------------------------------------------------------
- * REZIDENCIA AURORA — single apartment page
+ * P6 — single apartment page
  * Reads ?id=4.03 and renders from APARTMENTS.
+ * Needs plan.js (planSVG) and building.js (schematicSVG) loaded first.
  * ------------------------------------------------------------------------ */
-
-/** Squarified treemap — keeps every room close to square instead of
- *  degenerating into slivers. Bruls, Huizing & van Wijk, 2000. */
-function squarify(values, x0, y0, w0, h0) {
-  const out = [];
-  let x = x0, y = y0, w = w0, h = h0;
-  const total = values.reduce((a, b) => a + b, 0);
-  const scale = (w * h) / total;
-
-  const worst = (row, len) => {
-    const sum = row.reduce((a, b) => a + b, 0) * scale;
-    const mx = Math.max.apply(null, row) * scale;
-    const mn = Math.min.apply(null, row) * scale;
-    return Math.max((len * len * mx) / (sum * sum), (sum * sum) / (len * len * mn));
-  };
-
-  const place = (row, len, horiz) => {
-    const thick = (row.reduce((a, b) => a + b, 0) * scale) / len;
-    let off = 0;
-    row.forEach(v => {
-      const side = (v * scale) / thick;
-      out.push(horiz ? { x: x + off, y, w: side, h: thick }
-                     : { x, y: y + off, w: thick, h: side });
-      off += side;
-    });
-    if (horiz) { y += thick; h -= thick; } else { x += thick; w -= thick; }
-  };
-
-  const rest = values.slice();
-  let row = [];
-  while (rest.length) {
-    const horiz = w >= h;
-    const len = horiz ? w : h;
-    if (!row.length || worst(row.concat(rest[0]), len) <= worst(row, len)) {
-      row.push(rest.shift());
-    } else {
-      place(row, len, horiz);
-      row = [];
-    }
-  }
-  if (row.length) place(row, w >= h ? w : h, w >= h);
-  return out;
-}
-
-/** Schematic plan of one apartment — placeholder until the real
- *  floor-plan drawings are delivered. */
-function planSVG(a) {
-  /* On a phone the plan is only ~300px wide, so a 620x430 landscape box
-     shrinks the labels to ~7px. A taller, narrower box keeps them readable. */
-  const narrow = window.matchMedia('(max-width: 899px)').matches;
-  const W = narrow ? 420 : 620;
-  const H = narrow ? 520 : 430;
-  const pad = 7;
-  const rooms = a.roomList.map((r, i) => ({ ...r, key: i }))
-    .sort((r1, r2) => r2.area - r1.area);
-  const cells = squarify(rooms.map(r => r.area), 0, 0, W, H);
-
-  const clip = (text, width, size) => {
-    const max = Math.max(3, Math.floor((width - 20) / (size * 0.55)));
-    return text.length > max ? text.slice(0, max - 1).trim() + '…' : text;
-  };
-
-  const body = cells.map((c, i) => {
-    const room = rooms[i];
-    const x = c.x + pad / 2, y = c.y + pad / 2, w = c.w - pad, h = c.h - pad;
-    const size = (h < 56 || w < 96) ? 13 : 15.5;
-    /* a sliver of a room has no space for the m² line — the name is enough */
-    const showArea = h >= 46 && w >= 72;
-    return `<g class="plan__room" data-room="${room.key}" tabindex="0" role="img"
-              aria-label="${room.name}, ${room.area.toFixed(1)} m²"><title>${room.name} — ${room.area.toFixed(1)} m²</title>
-      <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(w, 1).toFixed(1)}" height="${Math.max(h, 1).toFixed(1)}" rx="2" fill="#F7F4EF" stroke="#14120F" stroke-width="2"/>
-      <text x="${(x + 12).toFixed(1)}" y="${(y + 24).toFixed(1)}" font-family="Inter, sans-serif" font-size="${size}" font-weight="500" fill="#14120F">${clip(room.name, w, size)}</text>
-      ${showArea ? `<text x="${(x + 12).toFixed(1)}" y="${(y + 26 + size + 4).toFixed(1)}" font-family="Inter, sans-serif" font-size="${size - 1.5}" fill="#5C544A">${room.area.toFixed(1)} m²</text>` : ''}
-    </g>`;
-  }).join('');
-
-  return `<svg viewBox="-6 -6 ${W + 12} ${H + 12}" role="img" aria-label="Orientačná schéma dispozície bytu ${a.id}">${body}</svg>`;
-}
 
 /* --- orientation compass -------------------------------------------------- */
 
@@ -139,7 +62,7 @@ function initDetail() {
   const next = order[(idx + 1) % order.length];
   const ppm = a.price != null ? Math.round(a.price / a.area) : null;
 
-  document.title = `Byt ${a.id} — ${a.type}, ${fmtArea(a.area)} m² | Rezidencia Aurora`;
+  document.title = `Byt ${a.id} — ${a.type}, ${fmtArea(a.area)} m² | P6`;
   const meta = document.querySelector('meta[name="description"]');
   if (meta) meta.setAttribute('content',
     `${a.type} č. ${a.id} na ${a.floor}. nadzemnom podlaží. Interiér ${fmtArea(a.area)} m², ${a.extKind.toLowerCase()} ${fmtArea(a.ext)} m², orientácia ${a.orientation}.`);
@@ -147,7 +70,7 @@ function initDetail() {
   root.querySelectorAll('[data-crumb]').forEach(el => { el.textContent = 'Byt ' + a.id; });
 
   root.querySelector('[data-head]').innerHTML = `
-    <p class="eyebrow">Rezidencia Aurora · ${a.floor}. nadzemné podlažie</p>
+    <p class="eyebrow">P6 · Prievozská 6 · ${a.floor}. nadzemné podlažie</p>
     <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px 22px">
       <h1 style="font-size:clamp(2.8rem,6.5vw,5rem)">Byt ${a.id}</h1>
       <span class="pill pill--${a.status}">${STATUS_LABEL[a.status]}</span>
@@ -257,17 +180,7 @@ function initDetail() {
   const similar = APARTMENTS.filter(x => x.layout === a.layout && x.id !== a.id && x.status === 'dostupny').slice(0, 4);
   const simWrap = root.querySelector('[data-similar]');
   if (similar.length) {
-    simWrap.querySelector('[data-similar-cards]').innerHTML = similar.map(x => `
-      <a class="card" href="byt.html?id=${encodeURIComponent(x.id)}" data-status="${x.status}">
-        <div class="card__top">
-          <div><div class="card__id">${x.id}</div><div class="card__type">${x.type} · ${x.floor}. NP</div></div>
-          <span class="pill pill--${x.status}">${STATUS_LABEL[x.status]}</span>
-        </div>
-        <dl class="card__rows">
-          <div class="card__row"><dt>Interiér</dt><dd>${fmtArea(x.area)} m²</dd></div>
-          <div class="card__row"><dt>Cena</dt><dd class="card__price">${fmtPrice(x.price, x.status)}</dd></div>
-        </dl>
-      </a>`).join('');
+    simWrap.querySelector('[data-similar-cards]').innerHTML = similar.map(x => unitCardHTML(x)).join('');
   } else {
     simWrap.hidden = true;
   }

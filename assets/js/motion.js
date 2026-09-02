@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------------
- * REZIDENCIA AURORA — motion layer
+ * P6 — motion layer
  *
  * Everything here is progressive enhancement: with JS off, or with
  * `prefers-reduced-motion: reduce`, the page is fully readable and every
@@ -206,6 +206,41 @@ function initScrolly() {
   });
 }
 
+/* --- sticky chapter navigation (landing page) ---------------------------- */
+
+function initChapters() {
+  const bar = document.querySelector('[data-chapters]');
+  if (!bar) return;
+  const links = [...bar.querySelectorAll('a[href^="#"]')];
+  const targets = links.map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
+  const hero = document.querySelector('.hero');
+  if (!targets.length) return;
+
+  /* keep the active chip in view on the phone rail */
+  const reveal = link => {
+    const r = link.getBoundingClientRect(), b = bar.getBoundingClientRect();
+    if (r.left < b.left || r.right > b.right) link.scrollIntoView({ inline: 'center', block: 'nearest', behavior: CALM ? 'auto' : 'smooth' });
+  };
+
+  let current = null;
+  onFrame(() => {
+    /* the bar appears once the hero has scrolled away */
+    if (hero) bar.classList.toggle('is-shown', window.scrollY > hero.offsetHeight - 120);
+
+    const line = window.innerHeight * 0.34;
+    let active = null;
+    targets.forEach((t, i) => { if (t.getBoundingClientRect().top <= line) active = i; });
+    if (active === current) return;
+    current = active;
+    links.forEach((l, i) => {
+      const on = i === active;
+      l.classList.toggle('is-on', on);
+      if (on) { l.setAttribute('aria-current', 'location'); reveal(l); }
+      else l.removeAttribute('aria-current');
+    });
+  });
+}
+
 /* --- section progress rail ----------------------------------------------- */
 
 function initReadingBar() {
@@ -225,4 +260,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initFaq();
   initScrolly();
   initReadingBar();
+  initChapters();
 });

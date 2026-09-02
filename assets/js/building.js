@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------------
- * REZIDENCIA AURORA — the building, drawn once and reused everywhere
+ * P6 — the building, drawn once and reused everywhere (placeholder facade)
  *
  * The facade is generated from the SAME geometry that produces the clickable
  * hotspots, so the drawing and the hit areas can never drift apart.

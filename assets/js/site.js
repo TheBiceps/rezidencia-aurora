@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------------
- * REZIDENCIA AURORA — shared helpers, navigation, page chrome
- * Load order:  data.js → site.js → (building.js | list.js | detail.js)
+ * P6 — shared helpers, navigation, page chrome
+ * Load order:  data.js → site.js → motion.js → plan.js → (map.js | building.js | list.js | detail.js)
  * ------------------------------------------------------------------------ */
 
 const STATUS_LABEL = {
