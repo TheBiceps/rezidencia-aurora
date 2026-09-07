@@ -682,8 +682,10 @@ table.rooms tfoot td { font-weight: 600; border-bottom: 0; border-top: 1px solid
 
 .detail-nav { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
-/* placeholder tile (photos / tour not available yet) */
-.ph {
+/* placeholder tile (photos / tour not available yet).
+   Class is .photo — the same element becomes a real photo frame once an <img>
+   is passed, so the modifiers below live with the image rules further down. */
+.photo {
   /* place-items centres each row but leaves the rows stretched apart, which
      spread the icon/title/caption over a tall tile — align-content fixes it */
   position: relative; display: grid; place-items: center; align-content: center;
@@ -696,14 +698,12 @@ table.rooms tfoot td { font-weight: 600; border-bottom: 0; border-top: 1px solid
   padding: clamp(30px, 5vw, 56px);
   color: var(--text-muted);
   min-height: 220px;
+  overflow: hidden;
 }
-.ph svg { width: 30px; height: 30px; opacity: .4; }
-.ph b { font-family: var(--f-display); font-size: 1.45rem; font-weight: 400; color: var(--ink); }
-.ph span { font-size: .85rem; max-width: 40ch; }
-.ph--tall { min-height: min(62vh, 560px); }
-.ph--ink { background: repeating-linear-gradient(-45deg, transparent 0 11px, rgba(247,244,239,.04) 11px 22px), var(--ink-2);
-  border-color: var(--line-inv); color: var(--text-inv-muted); }
-.ph--ink b { color: var(--text-inv); }
+/* the icon is decorative — without an explicit size it inherits the tile width */
+.photo > svg { width: 30px; height: 30px; opacity: .4; flex: none; }
+.photo > b { font-family: var(--f-display); font-size: 1.45rem; font-weight: 400; color: var(--ink); }
+.photo__cap { font-size: .85rem; max-width: 40ch; }
 
 /* ===========================================================================
    content blocks
@@ -1414,86 +1414,91 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
 .chapters__link.is-on { background: var(--ink); color: var(--text-inv); }
 @media (max-width: 899px) { .chapters__label { display: none; } }
 
-/* --- schematic city map ---------------------------------------------------- */
-.citymap { position: relative; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--line-soft); background: #EFEAE2; }
-.citymap--dark { background: #14120F; }
-.citymap__scroll { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-.citymap__scroll::-webkit-scrollbar { display: none; }
-.citymap__svg { width: 100%; height: auto; max-height: min(72vh, 640px); display: block; }
+/* --- real map (Leaflet + CARTO) ----------------------------------------- */
+.citymap {
+  position: relative; border-radius: var(--r-md); overflow: hidden;
+  border: 1px solid var(--line-soft); background: var(--paper-2);
+  height: clamp(340px, 52vh, 560px);
+}
+.citymap--dark { background: #14120F; border-color: var(--line-inv); }
+.citymap [data-map-stage] { position: absolute; inset: 0; }
+.citymap::after {                     /* quiet skeleton until tiles arrive */
+  content: "Načítavam mapu…"; position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted);
+  pointer-events: none; transition: opacity .3s ease;
+}
+.citymap--dark::after { color: var(--text-inv-muted); }
+.citymap.is-ready::after { opacity: 0; }
+.citymap.is-failed::after { content: "Mapu sa nepodarilo načítať."; opacity: 1; }
+
 .citymap__note {
-  position: absolute; left: 14px; bottom: 12px; z-index: 1;
-  font-size: .64rem; letter-spacing: .14em; text-transform: uppercase;
-  background: rgba(247,244,239,.9); color: var(--text-muted); padding: 6px 10px; border-radius: 3px;
+  position: absolute; left: 12px; bottom: 10px; z-index: 500;
+  background: rgba(247,244,239,.9); border: 1px solid var(--line-soft);
+  padding: 5px 10px; border-radius: 100px;
+  font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted);
 }
-.citymap--dark { border-color: var(--line-inv); }
-.citymap--dark .citymap__note { background: rgba(20,18,15,.82); color: var(--text-inv-muted); }
-@media (max-width: 899px) {
-  /* brief: the map stays horizontally scrollable on phones */
-  .citymap__svg { width: 220%; min-width: 780px; }
-  .citymap__hint { display: flex; }
-}
-.citymap__hint {
-  display: none; align-items: center; gap: 8px; margin-top: 10px;
-  font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted);
-}
-.citymap__hint svg { width: 15px; height: 15px; }
-
-.poi { cursor: default; outline: none; transition: opacity .3s ease; }
-.poi__halo { fill: transparent; transition: fill .2s ease; }
-.poi:hover .poi__halo, .poi.is-hot .poi__halo, .poi:focus-visible .poi__halo { fill: rgba(184,115,51,.2); }
-.poi__dot { transition: fill .3s ease, r .3s ease; }
-.poi__time { opacity: 0; transition: opacity .25s ease; }
-.citymap--interactive .poi__time { opacity: 1; }
-.poi[data-tier="near"] .poi__dot { fill: var(--copper); }
-.poi[data-tier="mid"]  .poi__dot { fill: var(--copper-2); }
-.poi[data-tier="far"] { opacity: .38; }
-.poi.is-off { opacity: .1; }
-.poi__pulse { transform-origin: 600px 330px; animation: poiPulse 2.6s ease-out infinite; }
-@keyframes poiPulse {
-  0%   { transform: scale(.6); opacity: .9; }
-  100% { transform: scale(2.4); opacity: 0; }
+.citymap--dark .citymap__note {
+  background: rgba(20,18,15,.82); border-color: var(--line-inv); color: var(--text-inv-muted);
 }
 
-/* --- section 2: the four figures ------------------------------------------- */
+/* Leaflet chrome, toned down to the site's palette */
+.citymap .leaflet-container { background: transparent; font-family: var(--f-ui); }
+.citymap .leaflet-control-attribution {
+  background: rgba(247,244,239,.86); font-size: 10px; color: var(--text-muted);
+}
+.citymap .leaflet-control-attribution a { color: var(--sand); }
+.citymap--dark .leaflet-control-attribution { background: rgba(20,18,15,.8); color: var(--text-inv-muted); }
+.citymap .leaflet-bar a {
+  background: var(--paper); color: var(--ink); border-bottom-color: var(--line-soft);
+}
+.citymap .leaflet-bar a:hover { background: var(--paper-2); }
+.citymap--dark .leaflet-bar a { background: var(--ink-2); color: var(--text-inv); border-bottom-color: var(--line-inv); }
+
+/* markers */
+.pin {
+  display: block; width: 11px; height: 11px; border-radius: 50%;
+  background: var(--ink); box-shadow: 0 0 0 2.5px var(--paper), 0 1px 3px rgba(0,0,0,.3);
+  transition: background-color .2s ease, transform .2s ease;
+}
+.citymap--dark .pin { box-shadow: 0 0 0 2.5px #14120F, 0 1px 3px rgba(0,0,0,.6); }
+.pin[data-tier="near"] { background: #B87333; }
+.pin[data-tier="mid"]  { background: #8A8079; }
+.pin[data-tier="far"]  { background: #B9B1A7; }
+.pin.is-off { opacity: .28; }
+.pin.is-hot { transform: scale(1.55); background: #B87333; }
+.pin--self { width: 18px; height: 18px; background: #B87333;
+  box-shadow: 0 0 0 3.5px var(--paper), 0 2px 8px rgba(0,0,0,.35); display: grid; place-items: center; }
+.citymap--dark .pin--self { box-shadow: 0 0 0 3.5px #14120F, 0 2px 8px rgba(0,0,0,.6); }
+.pin--self i { width: 6px; height: 6px; border-radius: 50%; background: var(--paper); }
+
+/* permanent labels */
+.citymap .poi-tip {
+  background: rgba(247,244,239,.92); border: 0; box-shadow: none; border-radius: 4px;
+  padding: 2px 7px; color: var(--ink);
+  font-size: 11.5px; font-weight: 500; white-space: nowrap;
+}
+.citymap .poi-tip::before { display: none; }
+.citymap .poi-tip b { font-weight: 600; }
+.citymap .poi-tip .t-time { color: #B87333; font-weight: 600; }
+.citymap .poi-tip .t-sub { display: block; font-weight: 400; font-size: 10px; color: var(--text-muted); }
+.citymap .poi-tip.is-off { opacity: .3; }
+.citymap .poi-tip--self { font-size: 13px; padding: 3px 9px; }
+.citymap--dark .poi-tip { background: rgba(20,18,15,.82); color: var(--text-inv); }
+.citymap--dark .poi-tip .t-sub { color: var(--text-inv-muted); }
+.citymap .leaflet-popup-content-wrapper { border-radius: var(--r-md); }
+.citymap .leaflet-popup-content { font-size: .82rem; line-height: 1.5; margin: 12px 14px; }
+.citymap .pop-m { color: var(--sand); font-weight: 600; }
+
+.citymap__hint { display: none; }
+
+/* --- key figures ---------------------------------------------------------- */
 .keyfigs { display: grid; gap: 1px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
 .keyfig { background: var(--paper); box-shadow: 0 0 0 1px var(--line-soft); padding: 24px 26px; }
-.keyfig b { display: block; font-family: var(--f-display); font-weight: 400; font-size: clamp(2rem, 3.2vw, 3rem); line-height: 1; margin-bottom: 8px; white-space: nowrap; }
-.keyfig span { font-size: .9rem; color: var(--text-muted); }
+.keyfig b { display: block; font-family: var(--f-display); font-weight: 400; font-size: clamp(1.7rem, 2.7vw, 2.5rem); line-height: 1; margin-bottom: 8px; white-space: nowrap; }
+.keyfig span { font-size: .88rem; color: var(--text-muted); }
 
-/* --- section 3: manifesto --------------------------------------------------- */
-.manifest h2 { font-size: clamp(2.6rem, 7.2vw, 6.6rem); line-height: .98; letter-spacing: -.02em; }
-.manifest h2 em { font-style: italic; color: var(--sand-2); }
-.manifest .lede { font-size: clamp(1.05rem, 1.4vw, 1.25rem); }
-
-/* --- full-bleed photo placeholders ------------------------------------------ */
-.photo {
-  position: relative; display: grid; place-items: center; align-content: center; gap: 10px;
-  text-align: center; color: var(--text-muted);
-  background: repeating-linear-gradient(-45deg, transparent 0 11px, rgba(20,18,15,.035) 11px 22px), var(--paper-3);
-  border-radius: var(--r-md); overflow: hidden;
-  aspect-ratio: 16 / 9; min-height: 300px; padding: 24px;
-}
-.photo--wide { aspect-ratio: 21 / 9; min-height: 260px; }
-.photo--tall { aspect-ratio: 4 / 5; min-height: 380px; }
-/* aspect-ratio + min-height makes the box grow WIDER than a phone, not taller.
-   Below 900px the width rules and the ratio follows. */
-@media (max-width: 899px) {
-  .photo, .photo--wide, .photo--tall { width: 100%; max-width: 100%; min-height: 0; aspect-ratio: 4 / 3; }
-  .photo--wide { aspect-ratio: 16 / 9; }
-}
-.photo--ink { background: repeating-linear-gradient(-45deg, transparent 0 11px, rgba(247,244,239,.045) 11px 22px), var(--ink-2); color: var(--text-inv-muted); }
-.photo svg { width: 28px; height: 28px; opacity: .45; }
-.photo b { font-family: var(--f-display); font-weight: 400; font-size: 1.35rem; color: var(--ink); }
-.photo--ink b { color: var(--text-inv); }
-.photo span { font-size: .84rem; max-width: 40ch; }
-.photo__cap {
-  position: absolute; left: 14px; bottom: 12px;
-  font-size: .64rem; letter-spacing: .16em; text-transform: uppercase;
-  background: rgba(247,244,239,.92); color: var(--text-muted); padding: 6px 10px; border-radius: 3px;
-}
-.photo--ink .photo__cap { background: rgba(20,18,15,.8); color: var(--text-inv-muted); }
-
-/* --- small points (three bullets, chips) ------------------------------------ */
+/* --- fact chips ----------------------------------------------------------- */
 .points { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 0; padding: 0; list-style: none; }
 .point {
   display: inline-flex; align-items: center; gap: 10px;
@@ -1502,9 +1507,16 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
 }
 .point::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--copper); flex: none; }
 .section--ink .point { border-color: var(--line-inv); color: var(--text-inv); }
-.section--ink .point::before { background: var(--sand-2); }
 
-/* --- section 5: the business-zone route ------------------------------------ */
+/* --- photo tile proportions ----------------------------------------------- */
+.photo--wide { aspect-ratio: 16 / 9; }
+.photo--tall { aspect-ratio: 4 / 5; min-height: 380px; }
+.photo--ink { background: repeating-linear-gradient(-45deg, transparent 0 11px, rgba(247,244,239,.045) 11px 22px), var(--ink-2);
+  border-color: var(--line-inv); color: var(--text-inv-muted); }
+.photo--ink > b { color: var(--text-inv); }
+.photo--ink .photo__cap { color: var(--text-inv-muted); }
+.photo--ink .photo__credit { background: rgba(20,18,15,.85); border-color: var(--line-inv); color: var(--text-inv-muted); }
+
 .route { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); position: relative; }
 .route::before { content: ""; position: absolute; left: 8.3%; right: 8.3%; top: 10px; height: 1px; background: var(--line); }
 .route__stop { position: relative; text-align: center; padding: 0 10px; }
@@ -1666,13 +1678,11 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
   .cta-slim__text { font-size: 1.35rem; }
   .fivemin__controls { margin-bottom: 14px; }
   /* four labels do not fit one pill at 375px — a 2×2 block keeps them whole */
-  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; border: 0; border-radius: var(--r-md); background: var(--line-inv); }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; border: 0; border-radius: var(--r-md); background: var(--line-inv); }
   .seg button { padding: 0 10px; font-size: .66rem; background: var(--ink); border-left: 0 !important; min-height: 48px; }
   .seg button[aria-pressed="true"] { background: var(--paper); }
-  .seg button:first-child { border-top-left-radius: var(--r-md); }
-  .seg button:nth-child(2) { border-top-right-radius: var(--r-md); }
-  .seg button:nth-child(3) { border-bottom-left-radius: var(--r-md); }
-  .seg button:last-child { border-bottom-right-radius: var(--r-md); }
+  .seg button:first-child { border-radius: var(--r-md) 0 0 var(--r-md); }
+  .seg button:last-child { border-radius: 0 var(--r-md) var(--r-md) 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1685,3 +1695,27 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
 .gallery .photo { min-height: 240px; aspect-ratio: auto; height: 100%; }
 .gallery__wide { grid-column: span 2; }
 @media (max-width: 720px) { .gallery__wide { grid-column: span 1; } }
+
+/* --- photo tiles that carry a real image ---------------------------------- */
+/* sits on top of the placeholder and fades in once it has decoded, so a slow
+   or missing file shows the designed tile rather than an empty frame */
+.photo__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity .6s cubic-bezier(.22,1,.36,1); }
+.photo.has-img > .photo__img { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .photo__img { transition: none; } }
+.photo.has-img { border-style: solid; border-color: var(--line-soft); background: var(--paper-2); }
+.photo.has-img > svg,
+.photo.has-img > b,
+.photo.has-img > .photo__cap { display: none; }
+/* the credit belongs to the photograph — hide it while the tile is a placeholder */
+.photo:not(.has-img) > .photo__credit { display: none; }
+.photo__credit {
+  position: absolute; left: 14px; bottom: 12px; z-index: 2;
+  background: rgba(247, 244, 239, .92); border: 1px solid var(--line-soft);
+  padding: 6px 12px; border-radius: 100px;
+  font-size: .64rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--text-muted); font-weight: 500;
+}
+/* aerial shots are wide — give them a landscape frame, never a tall crop */
+.photo--air { aspect-ratio: 16 / 8.2; min-height: 0; width: 100%; }
+@media (max-width: 899px) { .photo--air { aspect-ratio: 4 / 3; } }

@@ -27,7 +27,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "29"
+ASSET_V = "37"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -187,8 +187,23 @@ def scripts(*extra):
         s += f'<script src="assets/js/{e}?v={ASSET_V}"></script>\n'
     return s + "</body>\n</html>\n"
 
-def photo(title, cap, cls="", ico="camera"):
-    return f'<div class="photo {cls}">{svg(ico)}<b>{title}</b><span class="photo__cap">{cap}</span></div>'
+def photo(title, cap, cls="", ico="camera", src=None, alt="", credit=None):
+    """Photo tile that degrades to a designed placeholder.
+
+    The tile ships as the placeholder and only becomes a photo frame once the
+    image actually decodes (`has-img` is added by onload, never by the build).
+    Doing it the other way round -- shipping `has-img` and stripping it on
+    error -- leaves an empty box whenever the load never happens at all, which
+    is exactly what `loading="lazy"` does to anything below the fold."""
+    img = cred = ""
+    if src:
+        img = (f'<img class="photo__img" src="{src}" alt="{alt}" loading="lazy" decoding="async"'
+               f' onload="this.closest(\'.photo\').classList.add(\'has-img\')"'
+               f' onerror="this.remove()">')
+        if credit:
+            cred = f'<figcaption class="photo__credit">{credit}</figcaption>'
+    return (f'<figure class="{("photo " + cls).strip()}">{img}{svg(ico)}<b>{title}</b>'
+            f'<span class="photo__cap">{cap}</span>{cred}</figure>')
 
 def page_head(crumb, title, lede, current):
     c = f'''<nav class="crumbs" aria-label="Omrvinková navigácia" style="margin-bottom:22px">
@@ -369,18 +384,20 @@ def index_html():
       <h2>Všetko podstatné<br>v správnej vzdialenosti</h2>
     </div>
     <div class="citymap" data-citymap="static" data-theme="light">
-      <div class="citymap__scroll" data-map-scroll><div data-map-stage></div></div>
-      <span class="citymap__note">Schematická mapa · sever hore</span>
+      <div data-map-stage></div>
+      <span class="citymap__note">Časy merané po reálnych trasách z Prievozskej 6</span>
     </div>
-    <p class="citymap__hint">{svg("swipe")} Potiahnite mapu do strán</p>
 
     <div class="keyfigs" style="margin-top:clamp(26px,3vw,40px)">
-      <div class="keyfig"><b>5–10 min</b><span>škola, trh a biznis centrá</span></div>
-      <div class="keyfig"><b>do 2 km</b><span>Nivy, Downtown, šport a Dunaj</span></div>
-      <div class="keyfig"><b>10–15 min</b><span>letisko Bratislava autom</span></div>
-      <div class="keyfig"><b>45–55 min</b><span>letisko Schwechat autom</span></div>
+      <div class="keyfig"><b>75 m</b><span>Apollo Business Center II</span></div>
+      <div class="keyfig"><b>7 min</b><span>pešo do školy Novohradská</span></div>
+      <div class="keyfig"><b>do 1,5 km</b><span>Nivy, Nivy Tower, CBC, Twin City, Sky Park</span></div>
+      <div class="keyfig"><b>15 – 20 min</b><span>autom na letisko Bratislava</span></div>
     </div>
-    <p class="form__note" style="margin-top:12px">Uvedené časy sú orientačné.</p>
+    <p class="form__note" style="margin-top:12px">
+      Vzdialenosti a časy sú merané po reálnych peších a cyklistických trasách z Prievozskej 6
+      (OpenStreetMap / OSRM). Časy autom sú bez dopravnej špičky.
+    </p>
   </div>
 </section>
 
@@ -412,7 +429,7 @@ def index_html():
         <ul class="points">
           <li class="point">čerstvé potraviny</li>
           <li class="point">lokálni predajcovia</li>
-          <li class="point">približne 10 minút pešo</li>
+          <li class="point">13 minút pešo · 7 minút bicyklom</li>
         </ul>
       </div>
     </div>
@@ -428,11 +445,13 @@ def index_html():
         <h2>Bývajte bližšie k tomu,<br>čo tvorí váš deň</h2>
       </div>
       <p class="lede reveal">{txt(
-        "Prievozská, Plynárenská a Mlynské nivy tvoria hlavnú biznis zónu Bratislavy. Apollo Business Center II sa nachádza prakticky v susedstve P6. Twin City, Nivy Tower, CBC a Sky Park sú dostupné pešo, bicyklom alebo kolobežkou.",
-        "Prievozská, Plynárenská a Mlynské nivy tvoria hlavnú biznis zónu Bratislavy. Apollo Business Center II je prakticky v susedstve; Twin City, Nivy Tower, CBC a Sky Park sú na dosah pešo či bicyklom.")}</p>
+        "Prievozská, Plynárenská a Mlynské nivy tvoria hlavnú biznis zónu Bratislavy. Apollo Business Center II sa nachádza prakticky v susedstve P6. Twin City, Nivy Tower, CBC a Sky Park sú dostupné pešo alebo na bicykli.",
+        "Prievozská, Plynárenská a Mlynské nivy tvoria hlavnú biznis zónu Bratislavy. Apollo Business Center II je prakticky v susedstve; Twin City, Nivy Tower, CBC a Sky Park sú na dosah pešo či na bicykli.")}</p>
     </div>
     <ol class="route" data-route></ol>
-    <p class="form__note" style="margin-top:18px">Časy sú orientačné, počítané z P6 po bežných mestských trasách.</p>
+    <p class="form__note" style="margin-top:18px">
+      Vzdialenosti sú merané po reálnych trasách z P6 (OpenStreetMap / OSRM), nie vzdušnou čiarou.
+    </p>
   </div>
 </section>
 
@@ -449,7 +468,6 @@ def index_html():
           <div class="seg" role="group" aria-label="Spôsob dopravy">
             <button type="button" data-mode="pesi" aria-pressed="true">Pešo</button>
             <button type="button" data-mode="bicykel" aria-pressed="false">Bicyklom</button>
-            <button type="button" data-mode="kolobezka" aria-pressed="false">Kolobežkou</button>
             <button type="button" data-mode="auto" aria-pressed="false">Autom</button>
           </div>
           <div class="chips" role="group" aria-label="Kategórie">
@@ -464,15 +482,16 @@ def index_html():
           </div>
         </div>
         <div class="citymap citymap--dark citymap--interactive">
-          <div class="citymap__scroll" data-map-scroll><div data-map-stage></div></div>
-          <span class="citymap__note">medená = do 5 min · svetlá = do 15 min</span>
+          <div data-map-stage></div>
+          <span class="citymap__note">medená = do 5 min · sivá = do 15 min</span>
         </div>
-        <p class="citymap__hint" style="color:var(--text-inv-muted)">{svg("swipe")} Potiahnite mapu do strán</p>
       </div>
       <div>
         <p class="reach__summary" data-reach-summary></p>
         <ol class="reach" data-reach-list></ol>
-        <p class="form__note" style="margin-top:14px;color:var(--text-inv-muted)">Časy sú orientačné.</p>
+        <p class="form__note" style="margin-top:14px;color:var(--text-inv-muted)">
+          Reálne trasy z Prievozskej 6 (OpenStreetMap / OSRM). Kliknutím na miesto sa naň mapa priblíži.
+        </p>
       </div>
     </div>
   </div>
@@ -481,21 +500,32 @@ def index_html():
 <!-- §7 Rodina a škola ================================================= -->
 <section class="section">
   <div class="shell shell-wide">
-    <div class="grid-2" style="align-items:center">
-      <div class="reveal">{photo("Rodič a dieťa", "Fotografia · cesta do školy", "photo--tall")}</div>
+    <div class="reveal">{photo(
+      "Spojená škola Novohradská", "Fotografia bude doplnená",
+      "photo--air", "camera",
+      src="assets/img/skola-novohradska.jpg",
+      alt="Letecký pohľad na areál Spojenej školy Novohradská — školské budovy, bežecký ovál, ihrisko a detské ihrisko, 547 m od P6",
+      credit="Spojená škola Novohradská · 547 m od P6")}</div>
+
+    <div class="grid-2" style="align-items:start;margin-top:clamp(28px,4vw,48px)">
       <div class="reveal">
         <p class="eyebrow">Rodina a škola</p>
         <h2>Najkratšia cesta do školy je tá, ktorú prejdete pešo</h2>
-        <p class="lede" style="margin-top:18px">{txt(
-          "Spojená škola Novohradská sa nachádza v širšom susedstve P6. Každodenná cesta do školy preto nemusí znamenať ranné státie v aute ani ďalšiu cestu cez mesto.",
-          "Spojená škola Novohradská je v širšom susedstve P6. Cesta do školy nemusí znamenať ranné státie v aute.")}</p>
+      </div>
+      <div class="reveal">
+        <p class="lede">{txt(
+          "Spojená škola Novohradská je od P6 vzdialená 547 metrov — sedem minút pešo. Každodenná cesta do školy preto nemusí znamenať ranné státie v aute ani ďalšiu cestu cez mesto.",
+          "Spojená škola Novohradská je 547 metrov od P6 — sedem minút pešo. Cesta do školy nemusí znamenať ranné státie v aute.")}</p>
         <ul class="points">
           <li class="point">základná škola</li>
           <li class="point">gymnázium</li>
-          <li class="point">medzinárodné programy</li>
-          <li class="point">približne 5–8 minút pešo</li>
+          <li class="point">športový areál s bežeckým oválom a ihriskami</li>
+          <li class="point"><b>547 m</b> · 7 minút pešo · 4 minúty bicyklom</li>
         </ul>
-        <p class="form__note" style="margin-top:14px">Informácie o medzinárodných programoch uvádzame podľa aktuálnej ponuky školy.</p>
+        <p class="form__note" style="margin-top:14px">
+          Vzdialenosť meraná po reálnej pešej trase z Prievozskej 6. Konkrétnu ponuku odborov
+          a medzinárodných programov uvádzame podľa informácií školy.
+        </p>
       </div>
     </div>
   </div>
@@ -516,7 +546,7 @@ def index_html():
     <div class="mob">
       <article class="mob__card reveal">{svg("tram")}<h3>MHD</h3><p>Zastávky električiek a autobusov pár minút pešo od domu. Do centra aj na vlakovú stanicu bez auta.</p></article>
       <article class="mob__card reveal">{svg("bus")}<h3>Autobusová stanica</h3><p>Nivy – regionálne aj medzinárodné linky. Približne 15 minút pešo alebo pár minút bicyklom.</p></article>
-      <article class="mob__card reveal">{svg("bike")}<h3>Cyklistické spojenia</h3><p>Cyklotrasy smerom na nábrežie a do centra. Bicykel alebo kolobežka ako každodenná voľba.</p></article>
+      <article class="mob__card reveal">{svg("bike")}<h3>Cyklistické spojenia</h3><p>Cyklotrasy smerom na nábrežie a do centra. Na bicykli ste v Downtowne za pár minút.</p></article>
       <article class="mob__card reveal">{svg("road")}<h3>Diaľnica a letiská</h3><p>Nájazd na D1 v blízkosti. Letisko Bratislava 10–15 min, Schwechat 45–55 min autom.</p></article>
     </div>
   </div>
@@ -538,14 +568,14 @@ def index_html():
   </div>
   <div class="shell shell-wide">
     <div class="sport__grid">
-      <div class="sport__item"><b>Zimný štadión Ondreja Nepelu</b><span>hokej a koncerty · <em>≈ 7 min</em> bicyklom</span></div>
-      <div class="sport__item"><b>Národný futbalový štadión</b><span>futbal · <em>≈ 9 min</em> bicyklom</span></div>
-      <div class="sport__item"><b>Fitness centrá</b><span>v okolí P6 · <em>≈ 6 min</em> pešo</span></div>
-      <div class="sport__item"><b>Štrkovecké jazero</b><span>beh, korčule, oddych · <em>≈ 8 min</em> bicyklom</span></div>
-      <div class="sport__item"><b>Dunajská promenáda</b><span>beh a prechádzky · <em>≈ 10 min</em> bicyklom</span></div>
+      <div class="sport__item"><b>Zimný štadión Ondreja Nepelu</b><span>hokej a koncerty · 1,9 km · <em>11 min</em> bicyklom</span></div>
+      <div class="sport__item"><b>Národný futbalový štadión</b><span>futbal · 2,5 km · <em>14 min</em> bicyklom</span></div>
+      <div class="sport__item"><b>Štrkovecké jazero</b><span>beh, korčule, oddych · 2,2 km · <em>12 min</em> bicyklom</span></div>
+      <div class="sport__item"><b>Dunajská promenáda</b><span>beh a prechádzky · 3,1 km · <em>16 min</em> bicyklom</span></div>
+      <div class="sport__item"><b>Sky Park</b><span>park a bežecké okruhy · 1,5 km · <em>9 min</em> bicyklom</span></div>
       <div class="sport__item"><b>Cyklistické spojenia</b><span>na nábrežie, do centra aj na Nivy</span></div>
     </div>
-    <p class="form__note" style="margin-top:14px;color:var(--text-inv-muted)">Časy sú orientačné.</p>
+    <p class="form__note" style="margin-top:14px;color:var(--text-inv-muted)">Merané po reálnych cyklotrasách z P6.</p>
   </div>
 </section>
 

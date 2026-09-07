@@ -121,12 +121,38 @@ Nothing here is decorative-only; each piece is doing a job.
   if it is ever wanted back.)
 - Counters count up when they come into view.
 
-**Five-minute city** (`[data-citymap="interactive"]`, `assets/js/map.js`)
-- Toggle Pešo / Bicyklom / Kolobežkou / Autom; every place on the map gets a
-  time, copper for ≤5 min, light for ≤15, dimmed beyond. Category chips
-  filter. The list on the right sorts by time and links to the dots on hover.
-- The same component draws the static orientation map in §2.
-- The business-zone route (§5) reads its times from the same km data.
+**Maps** (`[data-citymap]`, `assets/js/map.js`)
+- Real slippy maps, not schematics: **Leaflet 1.9.4** from cdnjs (SRI-pinned),
+  lazy-mounted by an `IntersectionObserver` so the library only downloads when
+  a map scrolls into view.
+- Tiles are **Esri Gray Canvas** (`Canvas/World_Light_Gray_Base` plus the
+  `_Reference` label overlay; the `Dark` pair on ink sections). Chosen because
+  it is keyless, muted enough not to fight the palette, and renders Slovak
+  place names. *Caveat for production:* Esri's terms expect an ArcGIS
+  attribution and are not a guaranteed free tier at volume — if traffic grows,
+  move to a paid key (MapTiler / Mapbox) rather than silently leaning on it.
+  CARTO was the first choice and now stamps "API KEY REQUIRED" over the tiles.
+- `fadeAnimation: false` is deliberate. Leaflet's tile fade-in stalls at
+  `opacity: .03` whenever `requestAnimationFrame` is throttled (hidden tab,
+  reduced-motion, background render), which looks like broken tiles.
+
+**Map data — where the numbers come from**
+- POI coordinates in `POIS` were geocoded with **Nominatim**; the `m` (metres)
+  and `walk` / `bike` / `car` minutes come from **OSRM**
+  (`routing.openstreetmap.de`, `routed-foot` / `routed-bike` / `routed-car`).
+  They are *routed* figures, not straight-line estimates — Eurovea is 2.0 km
+  and 27 min on foot, not the 11 min a crow-flies guess suggests.
+- The values are **baked into `map.js` as constants**: no runtime API calls, no
+  keys, no rate limits. The cost is that they are a snapshot — **if a POI is
+  added, moved, or the route network changes, re-measure and update `POIS`.**
+- The same constants feed three places: the five-minute city, the §2
+  orientation map, and the §5 business-zone route. Change them once.
+- Modes are **Pešo / Bicyklom / Autom** only. There is no scooter mode and none
+  should be added.
+- Times colour copper for ≤5 min, light for ≤15, dimmed beyond. Category chips
+  filter; the list sorts by real time and links to the pins on hover.
+- Apollo Business Center is deliberately **not** pinned on the orientation map:
+  at 75 m it lands on the same pixel as P6. It leads the key figures instead.
 
 (The former storey-by-storey scrollytelling section was removed: the brief
 rules out claims about setbacks and penthouses until the architecture is
@@ -138,6 +164,21 @@ confirmed. `initScrolly()` still exists and is a no-op without markup.)
   unit is one click away, colour-coded by status.
 - A compass points at the flat's orientation.
 - `←` / `→` walk through the building in order.
+
+**Photo tiles** (`photo()` in `_build/build_pages.py`, `.photo` in the CSS)
+- One element covers both states. Without `src=` it is a dashed placeholder
+  (icon, title, "Fotografia bude doplnená"). With `src=` the image is layered
+  on top at `opacity: 0` and **only** promoted — `has-img`, which hides the
+  placeholder content and shows the credit — by the image's own `onload`.
+- That direction matters. Shipping `has-img` from the build and stripping it in
+  `onerror` was the earlier design and it fails silently: `loading="lazy"`
+  never requests an image the reader does not scroll to, so no `onerror` ever
+  fires and the tile sits there as an empty box. Load-driven promotion means a
+  missing, slow, or never-requested file always degrades to the designed
+  placeholder.
+- **Waiting on:** `assets/img/skola-novohradska.jpg` (§7 aerial of Spojená
+  škola Novohradská). The markup, alt text and credit are already wired to
+  that exact path — dropping the file in is the whole job.
 
 **Everywhere**
 - Cards, feature tiles and placeholders carry a cursor-following spotlight.
