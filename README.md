@@ -50,54 +50,59 @@ filtered by Jekyll.
 
 ## The one file you edit
 
-**`assets/js/data.js`** holds all 50 units. Everything on the site — hero
-selector, list, filters, detail pages, counters — reads from it. Field
-documentation is in the header of that file.
+**`assets/js/data.js`** holds all 44 apartments. Everything on the site — hero
+selector, list, filters, detail pages, counters, parameters — reads from it.
 
-Two switches live at the top:
+It is **generated from the architect's floor plans** (`1np.pdf`,
+`2 az 4 np.pdf`, `5np.pdf` — Ing. arch. Martin Krajči, based on arch. Kullman's
+drawings). Every room area is the figure printed on those drawings; nothing is
+invented. The header of the file documents each field.
 
-- `SHOW_PRICES` — set to `false` to render "Na vyžiadanie" everywhere instead of prices.
-- `BUILDING` — name, address, floor/unit counts.
+Per the architect's note, kitchen and living room are merged into one figure,
+and in one-room flats (E, F, G) the entrance area is merged in as well, because
+those spaces are not separated by walls.
 
-Per-unit, `price: null` renders "Cena na vyžiadanie" for just that unit.
+### Apartment numbering
 
-⚠️ The current 50 records are **placeholder data** generated for layout
-purposes. Replace them with the real unit list.
+`floor.letter` exactly as labelled on the drawings — `3.H` is apartment H on the
+3rd floor. 1.NP has 8 flats (A–H); 2.–5.NP have 9 (A–I). The ninth slot on 1.NP
+is the entrance lobby and staircase.
 
-## What the brief demands and what is still pending
+| Floors | Source drawing | Notes |
+|---|---|---|
+| 1.NP | `1np.pdf` | different layout; no flat I; flat H is larger (77,9 m²) |
+| 2.–4.NP | `2 az 4 np.pdf` | identical on all three floors |
+| 5.NP | `5np.pdf` | as 2.–4.NP except flat A has a smaller entrance hall (4,5 vs 4,9 m²) |
 
-Done exactly as the brief states:
+### Floor plans
 
-- Copy for every section, verbatim where the brief supplies it.
-- Fictional figures (50 bytov / 8 podlaží / 33–178 m²) removed from all copy,
-  the hero, meta tags and schema.org. §12 lists the parameter categories with
-  *Upresníme* until real values exist.
-- §15 Harmonogram hidden. Set `MILESTONES` in `_build/build_pages.py` to show
-  the five-milestone table and its chapter link.
-- Interim CTAs after location and after the project; three CTAs in the close.
-- Alternating light/dark chapters; higher contrast on small text; wider
-  content on large monitors; tighter vertical rhythm; sticky chapter nav;
-  mobile keeps the figures, the map, the route and the unit rail horizontally
-  scrollable and ships shortened copy (`.long` / `.short`).
+`assets/plans/plan-<group>-<letter>.svg` — 26 files, one per apartment type per
+floor group. Each is **cut from the architect's own vector PDF**, so the walls,
+doors, fittings and furniture are his drawing, not a redraw. The architect's
+room codes (`.A.1`, `.B.3`, …) and raw area figures were removed and replaced
+with room names and merged areas.
 
-Still placeholder — the client must supply these:
+Regenerate them with `_build/plans/genplans.py` if the architect sends new PDFs;
+`_build/plans/gendata.py` then rebuilds `data.js` from the same source.
 
-- **Real visualisation of P6 with the Downtown panorama** (brief §1). The hero
-  keeps the generated facade as an *illustrative* stand-in, labelled as such.
-  It is also what powers the interactive unit selector; both are demo geometry.
-- **Photos**: Miletička (authentic, not a render), cyclist, Nivy at night,
-  school run, community terrace, material shots for the six standard cards.
-- **Project parameters** (§12) and the real **unit list** for `data.js`.
-- **Standard** (§13) — six cards are written concretely but the building's
-  actual standard is unconfirmed; the section says so on the page.
-- **Harmonogram dates** (§15).
-- **Catalogue PDF** (§16) — wire the href in `final_block()`.
-- **Map distances**: `assets/js/map.js` holds each place's km estimate from
-  Prievozská 6; every time on the page derives from it. Verify before launch.
-  Positions on the map are schematic, not geographic.
-- Domain, e-mail and phone are placeholders (`prievozska6.sk`).
-- International programmes at Novohradská are listed only as a category —
-  the brief says use school-confirmed information only.
+### Still to come from the client — do not invent
+
+| Field | State |
+|---|---|
+| Prices | `price: null` everywhere → renders "Cena na vyžiadanie" |
+| Availability | everything `dostupny`; update as units are reserved or sold |
+| Orientation | **needs a site plan with a north arrow.** The field, the filter and the compass were removed rather than guessed |
+| Parking, cellars | parameters show "Upresníme" |
+| Standard of finish | six cards are written but flagged as unconfirmed |
+| Harmonogram | hidden until `MILESTONES` is filled in |
+
+### The disclaimer is mandatory
+
+`DISCLAIMER` in `_build/build_pages.py` carries the architect's required
+wording and appears under every plan, the unit list and the parameters. It must
+stay: the building is an existing skeleton being reconstructed, tolerances of
+roughly ±5–10 cm are expected, balcony areas are not confirmed by the city, and
+the project is being pre-sold without final permits.
 
 ## Interaction
 

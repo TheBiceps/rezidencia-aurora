@@ -1,43 +1,8 @@
 /* ---------------------------------------------------------------------------
  * P6 — single apartment page
  * Reads ?id=4.03 and renders from APARTMENTS.
- * Needs plan.js (planSVG) and building.js (schematicSVG) loaded first.
+ * The plan is the architect's own drawing, cut per apartment (a.plan).
  * ------------------------------------------------------------------------ */
-
-/* --- orientation compass -------------------------------------------------- */
-
-const BEARING = {
-  'Sever': 0, 'Severovýchod': 45, 'Východ': 90, 'Juhovýchod': 135,
-  'Juh': 180, 'Juhozápad': 225, 'Západ': 270, 'Severozápad': 315,
-};
-
-function compassSVG(orientation) {
-  const dirs = orientation.split('/').map(t => t.trim()).filter(t => t in BEARING);
-  const R = 42;
-  const needles = dirs.map(d => {
-    const rad = ((BEARING[d] - 90) * Math.PI) / 180;
-    return `<g transform="rotate(${BEARING[d]} 60 60)">
-              <path d="M60 60 L53 30 L60 20 L67 30 Z" fill="#A98C64"/>
-            </g>`;
-  }).join('');
-  const ticks = [0, 45, 90, 135, 180, 225, 270, 315].map(deg => {
-    const major = deg % 90 === 0;
-    return `<line x1="60" y1="${60 - R}" x2="60" y2="${60 - R + (major ? 7 : 4)}"
-              transform="rotate(${deg} 60 60)" stroke="#C9C1B5" stroke-width="${major ? 2 : 1}"/>`;
-  }).join('');
-  const letters = [['S', 0], ['V', 90], ['J', 180], ['Z', 270]].map(([ch, deg]) => {
-    const rad = ((deg - 90) * Math.PI) / 180;
-    const r = R + 13;
-    return `<text x="${(60 + Math.cos(rad) * r).toFixed(1)}" y="${(60 + Math.sin(rad) * r + 4).toFixed(1)}"
-              text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600"
-              fill="${dirs.some(d => BEARING[d] === deg) ? '#A98C64' : '#8A8079'}">${ch}</text>`;
-  }).join('');
-  return `<svg viewBox="0 0 120 120" role="img" aria-label="Orientácia bytu: ${orientation}">
-    <circle cx="60" cy="60" r="${R}" fill="none" stroke="#E3DCD1" stroke-width="1.5"/>
-    ${ticks}${needles}${letters}
-    <circle cx="60" cy="60" r="3.5" fill="#14120F"/>
-  </svg>`;
-}
 
 function initDetail() {
   const root = document.querySelector('[data-detail]');
@@ -65,7 +30,7 @@ function initDetail() {
   document.title = `Byt ${a.id} — ${a.type}, ${fmtArea(a.area)} m² | P6`;
   const meta = document.querySelector('meta[name="description"]');
   if (meta) meta.setAttribute('content',
-    `${a.type} č. ${a.id} na ${a.floor}. nadzemnom podlaží. Interiér ${fmtArea(a.area)} m², ${a.extKind.toLowerCase()} ${fmtArea(a.ext)} m², orientácia ${a.orientation}.`);
+    `${a.type} ${a.id} na ${a.floor}. nadzemnom podlaží. Interiér ${fmtArea(a.area)} m², balkón ${fmtArea(a.ext)} m². Pôdorys a výmery miestností.`);
 
   root.querySelectorAll('[data-crumb]').forEach(el => { el.textContent = 'Byt ' + a.id; });
 
@@ -75,28 +40,27 @@ function initDetail() {
       <h1 style="font-size:clamp(2.8rem,6.5vw,5rem)">Byt ${a.id}</h1>
       <span class="pill pill--${a.status}">${STATUS_LABEL[a.status]}</span>
     </div>
-    <p class="lede" style="margin-top:14px">${a.type} · typológia ${a.layout} · orientácia ${a.orientation}</p>`;
+    <p class="lede" style="margin-top:14px">${a.type} · ${a.floor}. nadzemné podlažie · byt ${a.letter}</p>`;
 
   root.querySelector('[data-spec]').innerHTML = [
     ['Interiér', fmtArea(a.area), 'm²'],
-    [a.extKind, fmtArea(a.ext), 'm²'],
-    ['Celková plocha', fmtArea(a.total), 'm²'],
+    ['Balkón', fmtArea(a.ext), 'm²'],
+    ['Spolu', fmtArea(a.total), 'm²'],
     ['Izby', a.rooms, ''],
     ['Podlažie', a.floor + '. NP', ''],
   ].map(([k, v, u]) =>
     `<div class="spec__item"><dt>${k}</dt><dd>${v}${u ? ` <small>${u}</small>` : ''}</dd></div>`).join('');
 
   const planHost = root.querySelector('[data-plan]');
-  planHost.innerHTML = planSVG(a);
-
-  const planBreak = window.matchMedia('(max-width: 899px)');
-  const redrawPlan = () => { planHost.innerHTML = planSVG(a); };
-  planBreak.addEventListener ? planBreak.addEventListener('change', redrawPlan)
-                             : planBreak.addListener(redrawPlan);
+  planHost.innerHTML =
+    `<img class="plan__img" src="${a.plan}" loading="lazy" decoding="async"
+          alt="Pôdorys bytu ${a.id} — ${a.type}, interiér ${fmtArea(a.area)} m²">`;
+  const dl = root.querySelector('[data-plan-download]');
+  if (dl) dl.href = a.plan;
 
   const rt = root.querySelector('[data-rooms]');
   rt.querySelector('tbody').innerHTML = a.roomList
-    .map((r, i) => `<tr data-room="${i}" tabindex="0"><td>${r.name}</td><td>${r.area.toFixed(1)} m²</td></tr>`).join('');
+    .map((r, i) => `<tr data-room="${i}"><td>${r.name}</td><td>${fmtArea1(r.area)} m²</td></tr>`).join('');
   rt.querySelector('tfoot td:last-child').textContent = fmtArea(a.area) + ' m²';
 
   root.querySelector('[data-aside]').innerHTML = `
@@ -128,10 +92,6 @@ function initDetail() {
   const mini = root.querySelector('[data-mini]');
   if (mini) mini.innerHTML = schematicSVG(a.id);
 
-  const comp = root.querySelector('[data-compass]');
-  if (comp) comp.innerHTML = compassSVG(a.orientation);
-  const ori = root.querySelector('[data-orientation]');
-  if (ori) ori.textContent = a.orientation;
 
   /* hovering a room in the plan highlights its row in the table, and back.
      Delegated from stable parents so a plan redraw does not unbind it. */
@@ -177,7 +137,7 @@ function initDetail() {
   });
 
   /* same layout type, still available */
-  const similar = APARTMENTS.filter(x => x.layout === a.layout && x.id !== a.id && x.status === 'dostupny').slice(0, 4);
+  const similar = APARTMENTS.filter(x => x.letter === a.letter && x.id !== a.id && x.status === 'dostupny').slice(0, 6);
   const simWrap = root.querySelector('[data-similar]');
   if (similar.length) {
     simWrap.querySelector('[data-similar-cards]').innerHTML = similar.map(x => unitCardHTML(x)).join('');

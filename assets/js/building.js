@@ -24,7 +24,8 @@ const ART = {
   ground: 880,      // ground line
   floorH: 88,       // height of one storey
   bayW: 150,        // width of one bay
-  bays: 7,          // bays across the widest floor
+  bays: 9,          // one bay per apartment (A–I)
+  floors: 5,        // 1.NP – 5.NP
   glassTop: 11,     // inset of the glazing from the top of the storey
   glassH: 55,       // height of the glazing
   railH: 15,        // height of the balcony balustrade
@@ -32,7 +33,7 @@ const ART = {
 
 ART.left = ART.cx - (ART.bays * ART.bayW) / 2;   // 275
 ART.right = ART.left + ART.bays * ART.bayW;      // 1325
-ART.top = ART.ground - 8 * ART.floorH;           // 176
+ART.top = ART.ground - ART.floors * ART.floorH;
 ART.coreW = 100;                                 // stair / lift core + entrance
 ART.coreX = ART.left - ART.coreW;                // 175
 ART.coreTop = ART.top - 32;
@@ -153,7 +154,7 @@ function facadeLayers(units) {
   mass += `<rect x="${g.coreX}" y="${g.coreTop}" width="14" height="${g.ground - g.coreTop}" fill="${P.wallHi}" opacity=".5"/>`;
   mass += `<rect x="${g.coreX + 26}" y="${g.coreTop + 26}" width="${g.coreW - 52}" height="${g.ground - g.coreTop - 130}" fill="url(#glass%NS%)"/>`;
   mass += `<rect class="win-lit" data-lit=".05" x="${g.coreX + 26}" y="${g.coreTop + 26}" width="${g.coreW - 52}" height="${g.ground - g.coreTop - 130}" fill="url(#lit%NS%)" opacity="0"/>`;
-  for (let f = 1; f <= 8; f++) {
+  for (let f = 1; f <= ART.floors; f++) {
     const y = g.ground - f * g.floorH;
     if (y < g.coreTop + 30) continue;
     mass += `<rect x="${g.coreX + 26}" y="${y - 3}" width="${g.coreW - 52}" height="5" fill="${P.wallHi}" opacity=".85"/>`;
@@ -165,10 +166,10 @@ function facadeLayers(units) {
   mass += `<rect x="${g.coreX - 30}" y="${g.ground - 100}" width="${g.coreW + 80}" height="7" fill="${P.shade}" opacity=".45"/>`;
 
   /* ---- storeys ---------------------------------------------------------- */
-  for (let f = 1; f <= 8; f++) {
+  for (let f = 1; f <= ART.floors; f++) {
     const row = units.filter(u => u.floor === f);
     if (!row.length) continue;
-    const off = row[0].bayOffset, n = row[0].bays;
+    const off = 0, n = g.bays;
     const x = g.left + off * g.bayW, w = n * g.bayW;
     const y = g.ground - f * g.floorH;
 
@@ -221,7 +222,7 @@ function facadeLayers(units) {
   }
 
   /* ---- roof ------------------------------------------------------------- */
-  const topRow = units.filter(u => u.floor === 8)[0];
+  const topRow = units.filter(u => u.floor === ART.floors)[0];
   const tx = g.left + topRow.bayOffset * g.bayW, tw = topRow.bays * g.bayW;
   mass += `<rect x="${tx - 12}" y="${g.top - 14}" width="${tw + 24}" height="16" fill="${P.wallHi}"/>`;
   mass += `<rect x="${tx - 12}" y="${g.top + 1}" width="${tw + 24}" height="5" fill="${P.shade}" opacity=".45"/>`;
@@ -273,9 +274,9 @@ function mountHotspots(svgEl) {
          ` style="--d:${delay}ms"` +
          ` x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}"` +
          ` tabindex="0" role="link"` +
-         ` aria-label="Byt ${u.id}, ${u.type}, ${fmtArea(u.area)} m², ${STATUS_LABEL[u.status]}"></rect>`;
+         ` aria-label="Byt ${u.id}, ${u.type}, interiér ${fmtArea(u.area)} m², ${STATUS_LABEL[u.status]}"></rect>`;
   });
-  for (let f = 1; f <= 8; f++) {
+  for (let f = 1; f <= ART.floors; f++) {
     s += `<text class="picker__floorlabel" data-floor="${f}" x="${ART.right + 30}"` +
          ` y="${ART.ground - f * ART.floorH + ART.floorH / 2 + 6}">${f}. podlažie</text>`;
   }
@@ -285,7 +286,7 @@ function mountHotspots(svgEl) {
 /** Whole-storey highlight bands, used by the scrollytelling section. */
 function mountFloorBands(svgEl) {
   let s = '';
-  for (let f = 1; f <= 8; f++) {
+  for (let f = 1; f <= ART.floors; f++) {
     const b = floorBox(f);
     if (!b) continue;
     s += `<rect class="fband" data-floor="${f}" x="${b.x - 12}" y="${b.y - 2}" width="${b.w + 24}" height="${b.h + 2}"/>`;
@@ -352,7 +353,7 @@ function schematicSVG(activeId) {
           </a>`;
   });
 
-  for (let f = 1; f <= 8; f++) {
+  for (let f = 1; f <= ART.floors; f++) {
     s += `<text class="mini__floor" x="${g.right + 16}" y="${g.ground - f * g.floorH + g.floorH / 2 + 10}"
              font-family="Inter,sans-serif" font-size="26" fill="#8A8079">${f}</text>`;
   }
@@ -371,18 +372,20 @@ function frameViewBox(el, w, h, opts) {
   const bw = ART.right - ART.coreX;
   const bh = ART.ground - ART.coreTop;
 
-  /* Wide viewports: the mass sits right of centre so the headline gets clear
+  /* P6 is a long, low bar — 5 storeys over 9 bays — so the mass is far wider
+     than it is tall and needs a flatter frame than a tower would.
+     Wide viewports: the mass sits right of centre so the headline gets clear
      sky on the left. Narrow viewports: centre it and zoom in as far as the
      width allows, so the storeys stay tappable. */
   const wide = o.centred ? false : w >= 900;
-  const fill = o.fill || (wide ? 0.55 : 0.94);
-  const vfill = o.vfill || (wide ? 0.62 : 0.70);
+  const fill = o.fill || (wide ? 0.62 : 0.95);
+  const vfill = o.vfill || (wide ? 0.46 : 0.52);
 
   const H = Math.max(bh / vfill, (bw / fill) / r);
   const W = H * r;
-  const leftFrac = wide ? 0.38 : (1 - bw / W) / 2;
+  const leftFrac = wide ? 0.30 : (1 - bw / W) / 2;
   const x = ART.coreX - leftFrac * W;
-  const y = ART.ground + (o.base != null ? o.base : (wide ? 0.26 : 0.02)) * H - H;
+  const y = ART.ground + (o.base != null ? o.base : (wide ? 0.20 : 0.06)) * H - H;
   el.setAttribute('viewBox', `${x.toFixed(1)} ${y.toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}`);
 }
 
@@ -447,8 +450,8 @@ function initPicker(root) {
        <div class="tip__type">${a.type} · ${a.floor}. nadzemné podlažie</div>
        <dl class="tip__rows">
          <div class="tip__row"><dt>Interiér</dt><dd>${fmtArea(a.area)} m²</dd></div>
-         <div class="tip__row"><dt>${a.extKind}</dt><dd>${fmtArea(a.ext)} m²</dd></div>
-         <div class="tip__row"><dt>Orientácia</dt><dd>${a.orientation}</dd></div>
+         <div class="tip__row"><dt>Balkón</dt><dd>${fmtArea(a.ext)} m²</dd></div>
+         <div class="tip__row"><dt>Spolu</dt><dd>${fmtArea(a.total)} m²</dd></div>
          <div class="tip__row"><dt>Cena</dt><dd>${fmtPrice(a.price, a.status)}</dd></div>
        </dl>
        <div class="tip__cta">${a.status === 'predany' ? 'Predané' : 'Kliknite pre detail bytu'}</div>
@@ -541,7 +544,7 @@ function initPicker(root) {
   /* floor strip — the dependable way in on small screens */
   const strip = root.parentElement.querySelector('[data-floorstrip]');
   if (strip) {
-    strip.innerHTML = [8, 7, 6, 5, 4, 3, 2, 1].map(f => {
+    strip.innerHTML = [5, 4, 3, 2, 1].map(f => {
       const free = APARTMENTS.filter(a => a.floor === f && a.status === 'dostupny').length;
       return `<a class="floorstrip__row" href="byty.html?floor=${f}">
                 <span class="floorstrip__no">${f}. NP</span>

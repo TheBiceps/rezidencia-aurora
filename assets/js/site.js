@@ -13,6 +13,9 @@ const nfArea = new Intl.NumberFormat('sk-SK', { minimumFractionDigits: 2, maximu
 const nfPrice = new Intl.NumberFormat('sk-SK', { maximumFractionDigits: 0 });
 
 const fmtArea = v => nfArea.format(v);
+/* one decimal, Slovak comma — room areas come off the plans as e.g. 35,0 m² */
+const nfArea1 = new Intl.NumberFormat('sk-SK', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const fmtArea1 = v => nfArea1.format(v);
 
 function fmtPrice(price, status) {
   if (status === 'predany') return '—';

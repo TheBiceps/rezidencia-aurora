@@ -27,7 +27,14 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "22"
+ASSET_V = "29"
+
+# Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
+# wherever plans or areas are shown.
+DISCLAIMER = ("Uvedené výmery sú orientačné a vychádzajú z podkladov architekta. "
+              "Ide o rekonštrukciu existujúceho skeletu, preto sú možné odchýlky "
+              "a plochy sa môžu zmeniť. Výmery balkónov nie sú definitívne potvrdené. "
+              "Investor si vyhradzuje právo na zmeny.")
 
 # Brief §15: show the milestone table only with confirmed dates; otherwise
 # leave the section out. Fill in to render it, e.g.
@@ -175,7 +182,7 @@ FOOT = f'''<footer class="foot">
 '''
 
 def scripts(*extra):
-    s = ''.join(f'<script src="assets/js/{n}?v={ASSET_V}"></script>\n' for n in ('data.js', 'site.js', 'motion.js', 'plan.js'))
+    s = ''.join(f'<script src="assets/js/{n}?v={ASSET_V}"></script>\n' for n in ('data.js', 'site.js', 'motion.js'))
     for e in extra:
         s += f'<script src="assets/js/{e}?v={ASSET_V}"></script>\n'
     return s + "</body>\n</html>\n"
@@ -251,9 +258,15 @@ STANDARD = [
 ]
 
 # §12 — categories the brief wants listed here; values pending real data.
+# From the architect's floor plans. Anything not on the drawings stays None.
 PARAMS = [
- ("Počet bytov", None), ("Počet podlaží", None), ("Parkovacie miesta", None), ("Typológie", None),
- ("Výmery bytov", None), ("Pivničné kobky", None), ("Terasy a balkóny", None),
+ ("Počet bytov", "44"),
+ ("Počet podlaží", "5 nadzemných"),
+ ("Typológie", "1- až 3-izbové"),
+ ("Výmery bytov", "30,1 – 77,9 m²"),
+ ("Balkóny", "8,5 – 18,3 m²"),
+ ("Parkovacie miesta", None),
+ ("Pivničné kobky", None),
 ]
 
 def index_html():
@@ -582,10 +595,10 @@ def index_html():
   <div class="shell shell-wide">
     <div style="max-width:56ch;margin-bottom:clamp(24px,3vw,36px)">
       <p class="eyebrow">Parametre projektu</p>
-      <h2>Čísla, ktoré doplníme<br>po schválení projektu</h2>
+      <h2>Dom v číslach</h2>
     </div>
     <dl class="params">{params}</dl>
-    <p class="form__note" style="margin-top:14px">Parametre zverejníme po schválení projektovej dokumentácie.</p>
+    <p class="form__note" style="margin-top:14px">Počty, podlažnosť a výmery vychádzajú z pôdorysov architekta. {DISCLAIMER}</p>
   </div>
 </section>
 
@@ -614,7 +627,7 @@ def index_html():
     </div>
     <div class="ucards ucards--rail" data-featured></div>
     <p class="rail-hint">{svg("swipe")} Potiahnite pre ďalšie byty</p>
-    <p class="form__note" style="margin-top:16px">Ponuka v ukážke je ilustračná a nahradíme ju reálnym zoznamom bytov.</p>
+    <p class="form__note" style="margin-top:16px">{DISCLAIMER}</p>
   </div>
 </section>
 
@@ -636,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function () {
 # ---------------------------------------------------------------- byty
 
 def byty_html():
-    floors = "".join(f'<option value="{i}">{i}. NP</option>' for i in range(1, 9))
+    floors = "".join(f'<option value="{i}">{i}. NP</option>' for i in range(1, 6))
     return (head(f"Byty — {NAME}",
                  "Prehľad bytov na Prievozskej 6 s pôdorysom, výmerou, orientáciou a dostupnosťou. Filtrujte podľa izieb, podlažia, výmery, exteriéru, orientácie a dostupnosti.",
                  "byty.html")
@@ -660,15 +673,11 @@ def byty_html():
       <div class="filters__sheet-head"><span>Filtre</span>
         <button type="button" class="filters__sheet-close" data-filter-close aria-label="Zavrieť filtre">{svg("x")}</button></div>
       <div class="field"><label for="f-rooms">Počet izieb</label>
-        <select id="f-rooms"><option value="">Všetky</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5 a viac</option></select></div>
+        <select id="f-rooms"><option value="">Všetky</option><option value="1">1-izbový</option><option value="2">2-izbový</option><option value="3">3-izbový</option></select></div>
       <div class="field"><label for="f-floor">Podlažie</label>
         <select id="f-floor"><option value="">Všetky</option>{floors}</select></div>
       <div class="field"><label for="f-area">Výmera</label>
-        <select id="f-area"><option value="">Bez limitu</option><option value="40">od 40 m²</option><option value="60">od 60 m²</option><option value="80">od 80 m²</option><option value="100">od 100 m²</option><option value="140">od 140 m²</option></select></div>
-      <div class="field"><label for="f-ext">Terasa alebo balkón</label>
-        <select id="f-ext"><option value="">Všetky</option><option value="Terasa">Terasa</option><option value="Balkón">Balkón</option><option value="Predzáhradka">Predzáhradka</option></select></div>
-      <div class="field"><label for="f-orient">Svetová orientácia</label>
-        <select id="f-orient"><option value="">Všetky</option><option value="Juh">Juh</option><option value="Západ">Západ</option><option value="Východ">Východ</option><option value="Sever">Sever</option></select></div>
+        <select id="f-area"><option value="">Bez limitu</option><option value="35">od 35 m²</option><option value="45">od 45 m²</option><option value="55">od 55 m²</option><option value="65">od 65 m²</option><option value="75">od 75 m²</option></select></div>
       <div class="field"><label for="f-status">Dostupnosť</label>
         <select id="f-status"><option value="">Všetky</option><option value="dostupny">Voľné</option><option value="rezervovany">Rezervované</option><option value="predany">Predané</option></select></div>
       <button type="button" class="btn btn--primary filters__apply" data-filter-close>Zobraziť <span data-count>—</span></button>
@@ -685,7 +694,7 @@ def byty_html():
       <p class="lede" style="margin-inline:auto">Skúste uvoľniť niektorý z filtrov — alebo nám napíšte a nájdeme vám najbližšiu alternatívu.</p>
       <p><a class="btn btn--ghost" href="kontakt.html">Napísať nám</a></p>
     </div>
-    <p class="form__note" style="margin-top:20px">Ponuka v ukážke je ilustračná a nahradíme ju reálnym zoznamom bytov.</p>
+    <p class="form__note" style="margin-top:20px">{DISCLAIMER}</p>
   </div>
 </section>
 
@@ -720,9 +729,12 @@ def byt_html():
 
         <div class="planwrap">
           <div>
-            <p class="eyebrow">Pôdorys</p>
+            <div class="plan__head">
+              <p class="eyebrow" style="margin:0">Pôdorys</p>
+              <a class="link-arrow" data-plan-download href="#" download>Stiahnuť pôdorys {svg("arrow")}</a>
+            </div>
             <div class="plan" data-plan></div>
-            <p class="form__note" style="margin-top:14px">Orientačná schéma dispozície — prejdite po miestnosti a zvýrazní sa aj v tabuľke. Presné pôdorysy doplníme.</p>
+            <p class="form__note" style="margin-top:14px">{DISCLAIMER}</p>
           </div>
           <div class="stack" style="gap:26px">
             <div>
@@ -732,10 +744,6 @@ def byt_html():
                 <tbody></tbody>
                 <tfoot><tr><td>Interiér spolu</td><td>—</td></tr></tfoot>
               </table>
-            </div>
-            <div class="compass-card">
-              <div class="compass" data-compass></div>
-              <div><p class="eyebrow" style="margin-bottom:6px">Orientácia</p><p class="compass-card__value" data-orientation>—</p></div>
             </div>
           </div>
         </div>

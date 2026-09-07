@@ -401,6 +401,9 @@ body[data-locked="true"] { overflow: hidden; }
 /* --- tooltip card ------------------------------------------------------- */
 .tip {
   position: absolute; z-index: var(--z-overlay);
+  /* JS sets left on show; the default keeps the hidden card from sitting at a
+     negative offset (translate(-50%) off left:auto) and tripping layout audits */
+  left: 50%; top: 0;
   width: 268px;
   background: var(--paper);
   border: 1px solid var(--line);
@@ -652,7 +655,9 @@ table.units tbody tr:hover .cell-go svg { opacity: 1; transform: translateX(3px)
   background: var(--paper-2); border: 1px solid var(--line-soft); border-radius: var(--r-md);
   padding: clamp(16px, 2vw, 26px); display: grid; place-items: center; min-height: 340px;
 }
-.plan svg { width: 100%; height: auto; max-width: 600px; }
+.plan svg, .plan__img { width: 100%; height: auto; max-width: 640px; display: block; }
+.plan__head { display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  flex-wrap: wrap; margin-bottom: 14px; }
 
 .aside { position: sticky; top: calc(var(--nav-h) + 24px); display: grid; gap: 22px; }
 .aside__box { border: 1px solid var(--line); border-radius: var(--r-md); padding: 26px; background: var(--paper); }
@@ -1068,7 +1073,7 @@ a.card:hover::after, a.card:focus-visible::after { transform: scaleY(1); }
 .faq summary:hover { color: var(--sand); }
 
 /* ===========================================================================
-   apartment detail: linked plan, compass, position map
+   apartment detail: plan, position map
    =========================================================================== */
 
 .planwrap { display: grid; gap: clamp(24px, 3vw, 40px); grid-template-columns: 1fr; }
@@ -1086,14 +1091,6 @@ table.rooms tbody tr { transition: background-color .18s ease; outline: none; }
 table.rooms tbody tr.is-on,
 table.rooms tbody tr:hover,
 table.rooms tbody tr:focus-visible { background: #EFE1C9; }
-
-.compass-card {
-  display: flex; align-items: center; gap: 18px;
-  border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px 20px;
-}
-.compass { width: 92px; flex: none; }
-.compass svg { width: 100%; height: auto; }
-.compass-card__value { font-family: var(--f-display); font-size: 1.5rem; margin: 0; line-height: 1.1; }
 
 .mini {
   background: var(--paper-2); border: 1px solid var(--line-soft);
@@ -1204,10 +1201,8 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
   .ph--tall { min-height: 320px; }
   .gallery .ph { min-height: 210px; }
   .plan { padding: 12px; min-height: 0; }
-  .plan svg { max-width: none; }
+  .plan svg, .plan__img { max-width: none; }
   .mini { padding: 14px; }
-  .compass-card { gap: 14px; padding: 16px; }
-  .compass { width: 76px; }
   .spec__item { padding: 16px 18px; }
   .spec__item dd { font-size: 1.4rem; }
   .detail-nav { gap: 10px; }
@@ -1623,7 +1618,8 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
 }
 a.ucard:hover, a.ucard:focus-visible { border-color: var(--sand); box-shadow: var(--shadow-1); }
 .ucard__plan { background: var(--paper-2); padding: 14px 16px; border-bottom: 1px solid var(--line-soft); }
-.ucard__plan svg { width: 100%; height: auto; max-height: 150px; display: block; }
+.ucard__plan svg, .ucard__plan img { width: 100%; height: 150px; object-fit: contain;
+  display: block; }
 .ucard__body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
 .ucard__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
 .ucard__id { font-family: var(--f-display); font-size: 1.9rem; line-height: 1; }

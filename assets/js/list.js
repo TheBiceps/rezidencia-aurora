@@ -1,8 +1,9 @@
 /* ---------------------------------------------------------------------------
  * P6 — apartment list
  * Cards only (the brief replaces the typology table with cards). Filters per
- * the brief: rooms, floor, area, terrace/balcony, orientation, availability.
- * Needs plan.js for the floor-plan thumbnails.
+ * the brief: rooms, floor, area, balcony, availability.
+ * Orientation is intentionally absent — the architect's plans carry no north
+ * arrow, so there is no honest value to filter on yet.
  * ------------------------------------------------------------------------ */
 
 function unitCardHTML(a, opts) {
@@ -10,7 +11,7 @@ function unitCardHTML(a, opts) {
   const href = a.status === 'predany' ? null : 'byt.html?id=' + encodeURIComponent(a.id);
   const tag = href ? 'a' : 'div';
   return `<${tag} class="ucard" data-status="${a.status}" ${href ? `href="${href}"` : ''}>
-    <div class="ucard__plan" aria-hidden="true">${planSVG(a, { compact: true })}</div>
+    <div class="ucard__plan"><img src="${a.plan}" loading="lazy" decoding="async" alt=""></div>
     <div class="ucard__body">
       <div class="ucard__top">
         <div>
@@ -22,8 +23,8 @@ function unitCardHTML(a, opts) {
       <dl class="ucard__rows">
         <div><dt>Izby</dt><dd>${a.rooms}</dd></div>
         <div><dt>Interiér</dt><dd>${fmtArea(a.area)} m²</dd></div>
-        <div><dt>${a.extKind}</dt><dd>${fmtArea(a.ext)} m²</dd></div>
-        <div><dt>Orientácia</dt><dd>${a.orientation}</dd></div>
+        <div><dt>Balkón</dt><dd>${fmtArea(a.ext)} m²</dd></div>
+        <div><dt>Spolu</dt><dd>${fmtArea(a.total)} m²</dd></div>
       </dl>
       <div class="ucard__foot">
         <span class="ucard__price">${fmtPrice(a.price, a.status)}</span>
@@ -46,8 +47,6 @@ function initList() {
     rooms:  root.querySelector('#f-rooms'),
     floor:  root.querySelector('#f-floor'),
     area:   root.querySelector('#f-area'),
-    ext:    root.querySelector('#f-ext'),
-    orient: root.querySelector('#f-orient'),
     status: root.querySelector('#f-status'),
   };
 
@@ -63,8 +62,6 @@ function initList() {
     if (f.rooms.value && String(a.rooms >= 5 ? 5 : a.rooms) !== f.rooms.value) return false;
     if (f.floor.value && String(a.floor) !== f.floor.value) return false;
     if (f.area.value && a.area < Number(f.area.value)) return false;
-    if (f.ext.value && a.extKind !== f.ext.value) return false;
-    if (f.orient.value && !a.orientation.includes(f.orient.value)) return false;
     return true;
   }
 
