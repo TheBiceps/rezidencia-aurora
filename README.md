@@ -76,14 +76,30 @@ is the entrance lobby and staircase.
 
 ### Floor plans
 
-`assets/plans/plan-<group>-<letter>.svg` — 26 files, one per apartment type per
-floor group. Each is **cut from the architect's own vector PDF**, so the walls,
-doors, fittings and furniture are his drawing, not a redraw. The architect's
-room codes (`.A.1`, `.B.3`, …) and raw area figures were removed and replaced
-with room names and merged areas.
+`assets/plans/*.webp` — the architect's **rendered** plans, furnished and
+shaded, imported by `_build/plans/import_renders.py`:
 
-Regenerate them with `_build/plans/genplans.py` if the architect sends new PDFs;
-`_build/plans/gendata.py` then rebuilds `data.js` from the same source.
+* `flat-<band>-<letter>.webp` — 18 files, shown on each apartment page.
+  Apartment A is drawn differently on every band (`1np` / `24np` / `5np`);
+  B–I are one drawing shared across 2.–5. NP. 1.NP has no I.
+* `floor-1np.webp`, `floor-25np.webp` — the two storey plans, used by
+  **"Poloha v dome"** on the apartment page: the flat you are on is marked, the
+  others light up on hover and link to their own page
+  (`assets/js/floorplan.js`).
+
+These replaced an earlier attempt at cutting per-apartment plans out of the
+vector PDFs with clip rectangles. Rectangular crops cannot follow an L-shaped
+flat, and the results were rejected; `genplans.py` and its 26 SVGs are gone.
+
+The **PDFs are still the source of truth for the numbers** — `gendata.py`
+rebuilds `data.js` from them and asserts each flat's rooms sum to its interior
+area. All 44 units' room areas on the new renders match `data.js` exactly,
+which is what confirms the renders were mapped to the right apartments.
+
+Identifying which flat is which is not eyeballable: E, F and G are one-room
+flats within 0,4 m² of each other. The apartment letters printed at each front
+door in the architect's PDFs are what settle it. Left to right along the
+courtyard side: **G, F, E**. See `_build/plans/README.md`.
 
 ### Still to come from the client — do not invent
 

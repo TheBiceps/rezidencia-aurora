@@ -22,6 +22,18 @@ TYPE = {1:"1-izbový byt",2:"2-izbový byt",3:"3-izbový byt"}
 GROUP = {1:"1np",2:"24np",3:"24np",4:"24np",5:"5np"}
 # facade bay index, ordered the way the flats actually sit along the building
 # (left to right on the drawings). 1.NP has no I — that bay is the entrance lobby.
+def render_name(group, letter):
+    """Filename of the architect's rendered plan for this apartment.
+
+    The renders are imported by _build/plans/import_renders.py. Apartment A is
+    drawn differently on every band, so it ships as three files; B-I are one
+    drawing shared across 2.-5. NP.
+    """
+    if letter == "A":
+        return {"1np": "flat-1np-A", "24np": "flat-24np-A", "5np": "flat-5np-A"}[group]
+    return "flat-1np-%s" % letter if group == "1np" else "flat-25np-%s" % letter
+
+
 BAY = {"I":0,"H":1,"G":2,"F":3,"A":4,"E":5,"B":6,"D":7,"C":8}
 
 out=[]
@@ -39,7 +51,7 @@ for floor in (1,2,3,4,5):
         out.append({
             "id":"%d.%s"%(floor,letter), "floor":floor, "letter":letter,
             "bay":BAY[letter], "bays":9, "bayOffset":0,
-            "plan":"assets/plans/plan-%s-%s.svg"%(g,letter),
+            "plan":"assets/plans/%s.webp"%render_name(g,letter),
             "type":TYPE[ROOMS_N[letter]], "rooms":ROOMS_N[letter],
             "area":interior, "ext":bal, "extKind":"Balkón",
             "total":round(interior+bal,1),

@@ -1092,19 +1092,84 @@ table.rooms tbody tr.is-on,
 table.rooms tbody tr:hover,
 table.rooms tbody tr:focus-visible { background: #EFE1C9; }
 
-.mini {
+/* --- "Poloha v dome": the architect's storey plan, made clickable ---------
+   The overlay is a percentage-space SVG stretched over the image with
+   preserveAspectRatio="none", so the outlines track the plan at every width
+   without re-measuring. The plan itself carries all the drawing; the overlay
+   only tints, so it stays deliberately quiet until the pointer arrives. */
+.fplan {
+  position: relative; margin: 0;
   background: var(--paper-2); border: 1px solid var(--line-soft);
-  border-radius: var(--r-md); padding: clamp(16px, 2.5vw, 28px);
+  border-radius: var(--r-md); overflow: hidden;
 }
-.mini svg { width: 100%; height: auto; max-height: 340px; }
-.mini__cell { cursor: pointer; }
-.mini__cell rect { fill: #CFC7B9; transition: fill .2s ease; }
-.mini__cell[data-status="dostupny"] rect { fill: #A6BEAC; }
-.mini__cell[data-status="rezervovany"] rect { fill: #DDC08C; }
-.mini__cell:hover rect { fill: var(--sand); }
-.mini__cell.is-active rect { fill: var(--ink); }
-.mini__cell.is-active text { fill: var(--paper); }
-.mini__cell:focus-visible rect { stroke: var(--ink); stroke-width: 4; }
+/* Grid items are min-width:auto by default, so they refuse to shrink below
+   their content — which would push the 660px mobile rail through the page
+   instead of scrolling it inside. .stack and its children carry the plan, the
+   room table and the unit rail, all of which want to scroll, not to widen. */
+.detail .stack, .detail .stack > * { min-width: 0; }
+.fplan__scroll { overflow: hidden; }
+.fplan__frame { position: relative; display: block; }
+.fplan__img { display: block; width: 100%; height: auto; }
+.fplan__map { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.fplan__unit { cursor: pointer; outline: none; }
+.fplan__unit polygon {
+  fill: transparent; stroke: transparent; stroke-width: .35;
+  transition: fill .22s ease, stroke .22s ease;
+}
+/* the badge is the only always-on mark, and it stays faint */
+.fplan__tag { pointer-events: none; opacity: .5; transition: opacity .22s ease; }
+.fplan__tag rect { fill: var(--paper); stroke: rgba(20,18,15,.22); stroke-width: .3; }
+.fplan__tag text {
+  fill: var(--ink); font-family: var(--f-ui); font-size: 5.6px; font-weight: 600;
+  text-anchor: middle; letter-spacing: .04em;
+}
+
+.fplan__unit:hover polygon,
+.fplan__unit:focus-visible polygon { fill: rgba(176, 124, 68, .26); stroke: var(--copper); }
+.fplan__unit:hover .fplan__tag,
+.fplan__unit:focus-visible .fplan__tag { opacity: 1; }
+.fplan__unit:focus-visible polygon { stroke-width: .7; }
+
+/* status only shows on hover — a plan pre-tinted in three colours reads as a
+   heat map and fights the drawing underneath */
+.fplan__unit[data-status="rezervovany"]:hover polygon { fill: rgba(154, 114, 38, .26); stroke: var(--warn); }
+.fplan__unit[data-status="predany"]:hover polygon { fill: rgba(138, 128, 121, .3); stroke: var(--off); }
+
+/* the flat you are looking at is marked permanently, and is not a link */
+.fplan__unit.is-active { cursor: default; }
+.fplan__unit.is-active polygon { fill: rgba(78, 115, 85, .2); stroke: var(--ok); stroke-width: .6; }
+.fplan__unit.is-active .fplan__tag { opacity: 1; }
+.fplan__unit.is-active .fplan__tag rect { fill: var(--ok); stroke: var(--ok); }
+.fplan__unit.is-active .fplan__tag text { fill: var(--paper); }
+
+.fplan__cap {
+  padding: 10px 16px 12px; font-size: .74rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--text-muted);
+  border-top: 1px solid var(--line-soft); background: var(--paper);
+}
+
+/* touch has no hover: show every outline faintly so the flats read as tappable */
+@media (hover: none) {
+  .fplan__unit polygon { fill: rgba(20, 18, 15, .05); stroke: rgba(20, 18, 15, .16); }
+  .fplan__tag { opacity: .8; }
+}
+
+/* The storey plan is a 2.3:1 letterbox — squeezed into a phone it lands about
+   145px tall, which is far too small to read nine flats off, and the tap
+   targets go with it. Give it a real width and let the plan pan instead, the
+   same rail the unit cards and the floor strip already use. */
+@media (max-width: 760px) {
+  .fplan__scroll {
+    overflow-x: auto; overflow-y: hidden;
+    -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
+  }
+  .fplan__frame { min-width: 660px; }
+  .fplan__cap::after {
+    content: " · potiahnutím posuniete pôdorys";
+    color: var(--copper);
+  }
+}
 
 /* the aside gets a touch narrower so the plan and its table can sit together */
 @media (min-width: 1000px) { .detail { grid-template-columns: minmax(0, 1fr) 340px; } }

@@ -54,7 +54,7 @@ function initDetail() {
   const planHost = root.querySelector('[data-plan]');
   planHost.innerHTML =
     `<img class="plan__img" src="${a.plan}" loading="lazy" decoding="async"
-          alt="Pôdorys bytu ${a.id} — ${a.type}, interiér ${fmtArea(a.area)} m²">`;
+          alt="Pôdorys bytu ${a.id} — ${a.type}, interiér ${fmtArea(a.area)} m², ${a.extKind.toLowerCase()} ${fmtArea(a.ext)} m²">`;
   const dl = root.querySelector('[data-plan-download]');
   if (dl) dl.href = a.plan;
 
@@ -88,9 +88,9 @@ function initDetail() {
       <span style="transform:rotate(180deg);display:inline-flex">${icon.arrow}</span> Byt ${prev.id}</a>
     <a class="link-arrow" href="byt.html?id=${encodeURIComponent(next.id)}">Byt ${next.id} ${icon.arrow}</a>`;
 
-  /* position in the building — clickable, so browsing neighbours is one hop */
-  const mini = root.querySelector('[data-mini]');
-  if (mini) mini.innerHTML = schematicSVG(a.id);
+  /* position in the building — the architect's own storey plan, with every
+     neighbour on the floor clickable, so browsing the storey is one hop */
+  mountFloorPlan(root.querySelector('[data-floorplan]'), a.id);
 
 
   /* hovering a room in the plan highlights its row in the table, and back.

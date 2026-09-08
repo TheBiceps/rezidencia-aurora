@@ -27,7 +27,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "37"
+ASSET_V = "41"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -780,14 +780,14 @@ def byt_html():
 
         <div>
           <p class="eyebrow">Poloha v dome</p>
-          <div class="mini" data-mini></div>
+          <div data-floorplan></div>
           <div class="legend legend--tight">
             <span class="legend__item legend__item--static"><span class="legend__dot legend__dot--ok"></span>Voľný</span>
             <span class="legend__item legend__item--static"><span class="legend__dot legend__dot--warn"></span>Rezervovaný</span>
             <span class="legend__item legend__item--static"><span class="legend__dot legend__dot--off"></span>Predaný</span>
             <span class="legend__item legend__item--static"><span class="legend__dot legend__dot--this"></span>Tento byt</span>
           </div>
-          <p class="form__note" style="margin-top:8px">Kliknutím na iný byt sa presuniete na jeho detail. Šípkami ← → prechádzate dom po poradí. Schéma domu je ilustračná.</p>
+          <p class="form__note" style="margin-top:8px">Kliknutím na iný byt na podlaží sa presuniete na jeho detail. Šípkami ← → prechádzate dom po poradí.</p>
         </div>
 
         <div class="grid-2" style="gap:16px">
@@ -815,7 +815,7 @@ def byt_html():
 </main>
 
 <div class="sticky-cta" data-sticky-cta hidden></div>
-''' + FOOT + scripts("building.js", "list.js", "detail.js"))
+''' + FOOT + scripts("building.js", "list.js", "floorplan.js", "detail.js"))
 
 # ---------------------------------------------------------------- redirects
 

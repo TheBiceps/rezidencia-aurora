@@ -9,7 +9,6 @@
  *   mountFacade(svg)         paint the building into an <svg>
  *   mountHotspots(svg)       paint the clickable overlay
  *   mountFloorBands(svg)     paint whole-storey highlight bands (scrollytelling)
- *   schematicSVG(activeId)   small abstract elevation for the detail page
  *   frameViewBox(el, w, h)   keep the mass framed at any aspect ratio
  *   setSkyTime(root, t)      0 = dawn … 1 = dusk
  *   initPicker(root)         wire up the hero selector
@@ -334,34 +333,6 @@ function setSkyTime(root, t) {
 }
 
 /* --- abstract elevation for the apartment detail page -------------------- */
-
-function schematicSVG(activeId) {
-  const g = ART, pad = 3;
-  const x0 = g.left - 40, x1 = g.right + 40;
-  const y0 = g.top - 30, y1 = g.ground + 44;
-  let s = '';
-
-  s += `<rect x="${g.coreX - 4}" y="${g.coreTop}" width="${g.coreW + 4}" height="${g.ground - g.coreTop}" rx="4" fill="#E3DCD1"/>`;
-  s += `<text x="${g.coreX + g.coreW / 2}" y="${g.ground - 40}" text-anchor="middle" font-family="Inter,sans-serif" font-size="26" fill="#8A8079">vstup</text>`;
-
-  APARTMENTS.forEach(u => {
-    const b = unitBox(u);
-    const on = u.id === activeId;
-    s += `<a href="byt.html?id=${encodeURIComponent(u.id)}" class="mini__cell${on ? ' is-active' : ''}" data-status="${u.status}" aria-label="Byt ${u.id}, ${STATUS_LABEL[u.status]}">
-            <rect x="${b.x + pad}" y="${b.y + pad}" width="${b.w - pad * 2}" height="${b.h - pad * 2}" rx="3"/>
-            ${on ? `<text x="${b.x + b.w / 2}" y="${b.y + b.h / 2 + 11}" text-anchor="middle" font-family="Inter,sans-serif" font-weight="600" font-size="30">${u.id}</text>` : ''}
-          </a>`;
-  });
-
-  for (let f = 1; f <= ART.floors; f++) {
-    s += `<text class="mini__floor" x="${g.right + 16}" y="${g.ground - f * g.floorH + g.floorH / 2 + 10}"
-             font-family="Inter,sans-serif" font-size="26" fill="#8A8079">${f}</text>`;
-  }
-  s += `<rect x="${g.left - 20}" y="${g.ground}" width="${g.right - g.left + 40}" height="6" rx="3" fill="#C9C1B5"/>`;
-
-  return `<svg viewBox="${x0} ${y0} ${x1 - x0} ${y1 - y0}" role="img"
-            aria-label="Poloha bytu ${activeId} v dome">${s}</svg>`;
-}
 
 /* --- framing ------------------------------------------------------------- */
 
