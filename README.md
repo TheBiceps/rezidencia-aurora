@@ -43,7 +43,7 @@ filtered by Jekyll.
 |---|---|
 | `index.html` | The whole narrative: hero → orientation map → manifesto → Miletička → business zone → five-minute city → school → Nivy → sport → architecture → community terrace → parameters → standard → units → closing block. Sticky chapter nav (Lokalita / Projekt / Štandard / Byty). |
 | `byty.html` | Unit cards with a floor-plan thumbnail; filters exactly per the brief: rooms, floor, area, terrace/balcony, orientation, availability. No table. |
-| `byt.html?id=4.03` | Unit detail: specs, plan linked to the room table, compass, position map, similar units, sticky price bar on phones. |
+| `byt.html?id=4.03` | Unit detail: specs, the architect's rendered plan, room table, clickable storey plan ("Poloha v dome"), similar units, sticky price bar on phones. |
 | `galeria.html` | Photo placeholders for the shots the brief asks for (Miletička, cyclist, Nivy at night, school run, terrace). |
 | `kontakt.html` | Contact form + FAQ. `?byt=4.03` prefills the unit; `?katalog=1` prefills a catalogue request (the "Stiahnuť katalóg" CTA lands here until a PDF exists). |
 | `lokalita.html`, `projekt.html` | Instant redirects to `index.html#lokalita` / `#projekt` so old links keep working. |
@@ -175,11 +175,22 @@ rules out claims about setbacks and penthouses until the architecture is
 confirmed. `initScrolly()` still exists and is a no-op without markup.)
 
 **Apartment detail**
-- Hovering a room in the plan highlights its row in the table, and vice versa.
-- A clickable elevation shows where the flat sits in the building; every other
-  unit is one click away, colour-coded by status.
-- A compass points at the flat's orientation.
+- The plan is the architect's rendered drawing for that flat, with his own room
+  codes and areas on it; the room table beside it repeats the same figures.
+- **"Poloha v dome"** (`assets/js/floorplan.js`) is the storey plan for the
+  floor the flat is on. The flat you are viewing is marked and is not a link;
+  every other flat on the storey is a hit region that lights up on hover and
+  goes to its own page, keyboard included. Status only tints on hover — a plan
+  pre-painted in three status colours reads as a heat map and buries the
+  drawing.
+- On phones the storey plan pans in a rail rather than shrinking: it is a 2.3:1
+  letterbox, and squeezed to a phone it lands ~145px tall, too small to read
+  nine flats off.
 - `←` / `→` walk through the building in order.
+
+  *A compass used to point at the flat's orientation; it was removed because
+  nothing in the client's material states which way the building faces, and the
+  earlier abstract elevation was replaced by the real storey plan.*
 
 **Photo tiles** (`photo()` in `_build/build_pages.py`, `.photo` in the CSS)
 - One element covers both states. Without `src=` it is a dashed placeholder
@@ -298,7 +309,8 @@ Tokens are at the top of `assets/css/site.css`.
 | `building.js` | placeholder facade geometry, SVG generation, hero selector |
 | `motion.js` | reveal, count-up, spotlight, chapter scroll-spy |
 | `list.js` | unit cards + the brief's six filters (also exports `unitCardHTML`) |
-| `detail.js` | single-unit page, compass, position map, sticky CTA |
+| `detail.js` | single-unit page, plan, room table, sticky CTA |
+| `floorplan.js` | "Poloha v dome" — clickable storey plan, outlines + letter→flat mapping |
 
 Load order matters: `data.js → site.js → motion.js → plan.js → (map.js | building.js | list.js | detail.js)`.
 
