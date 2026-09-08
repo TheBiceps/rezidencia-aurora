@@ -87,6 +87,14 @@ function mountFloorPlan(host, active) {
 
   const onFloor = APARTMENTS.filter(u => u.floor === a.floor);
 
+  /* The map is stretched over the image with preserveAspectRatio="none", so one
+     x unit is (img.w / img.h) times wider on screen than one y unit — 2.29x on
+     the 2.-5. NP plan. Anything drawn naively in that space comes out smeared
+     sideways, which is what turned the letter badges into lozenges. Undoing it
+     on the badge alone lets the outlines keep tracking the plan while the badge
+     draws as a true circle with unstretched type. */
+  const unstretch = (img.h / img.w).toFixed(4);
+
   const cell = u => {
     const pts = shapes[u.letter];
     if (!pts) return '';
@@ -102,9 +110,9 @@ function mountFloorPlan(host, active) {
               ${on ? 'aria-current="page"' : ''} aria-label="${title}">
               <title>${title}</title>
               <polygon points="${pts}"/>
-              <g class="fplan__tag" transform="translate(${cx} ${cy})">
-                <rect x="-7.2" y="-4.4" width="14.4" height="8.8" rx="4.4"/>
-                <text y="2.1">${u.letter}</text>
+              <g class="fplan__tag" transform="translate(${cx} ${cy}) scale(${unstretch} 1)">
+                <circle r="3.6"/>
+                <text y="1.25">${u.letter}</text>
               </g>
             </${tag}>`;
   };

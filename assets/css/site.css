@@ -1113,34 +1113,48 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
 .fplan__map { position: absolute; inset: 0; width: 100%; height: 100%; }
 
 .fplan__unit { cursor: pointer; outline: none; }
+/* non-scaling-stroke keeps the outline an even hairline: without it the
+   stretched coordinate space draws vertical edges 2.3x thicker than horizontal */
 .fplan__unit polygon {
-  fill: transparent; stroke: transparent; stroke-width: .35;
-  transition: fill .22s ease, stroke .22s ease;
+  fill: transparent; stroke: transparent; stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  transition: fill .2s ease, stroke .2s ease;
 }
-/* the badge is the only always-on mark, and it stays faint */
-.fplan__tag { pointer-events: none; opacity: .5; transition: opacity .22s ease; }
-.fplan__tag rect { fill: var(--paper); stroke: rgba(20,18,15,.22); stroke-width: .3; }
+
+/* The badge is the only always-on mark, so it stays small and quiet: a plain
+   disc, no bigger than a map pin, sitting on the flat it names. */
+.fplan__tag { pointer-events: none; transition: opacity .2s ease; }
+.fplan__tag circle {
+  fill: var(--paper); stroke: rgba(20, 18, 15, .2); stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
 .fplan__tag text {
-  fill: var(--ink); font-family: var(--f-ui); font-size: 5.6px; font-weight: 600;
-  text-anchor: middle; letter-spacing: .04em;
+  fill: var(--ink); font-family: var(--f-ui); font-size: 3.4px; font-weight: 600;
+  text-anchor: middle; letter-spacing: .02em;
 }
 
+/* One highlight colour, brand copper, for every flat regardless of status —
+   three hover hues turned the plan into a heat map and buried the drawing. */
 .fplan__unit:hover polygon,
-.fplan__unit:focus-visible polygon { fill: rgba(176, 124, 68, .26); stroke: var(--copper); }
-.fplan__unit:hover .fplan__tag,
-.fplan__unit:focus-visible .fplan__tag { opacity: 1; }
-.fplan__unit:focus-visible polygon { stroke-width: .7; }
+.fplan__unit:focus-visible polygon { fill: rgba(176, 124, 68, .28); stroke: var(--copper); }
+.fplan__unit:hover .fplan__tag circle,
+.fplan__unit:focus-visible .fplan__tag circle { fill: var(--copper); stroke: var(--copper); }
+.fplan__unit:hover .fplan__tag text,
+.fplan__unit:focus-visible .fplan__tag text { fill: var(--paper); }
+.fplan__unit:focus-visible polygon { stroke-width: 2.5; }
 
-/* status only shows on hover — a plan pre-tinted in three colours reads as a
-   heat map and fights the drawing underneath */
-.fplan__unit[data-status="rezervovany"]:hover polygon { fill: rgba(154, 114, 38, .26); stroke: var(--warn); }
-.fplan__unit[data-status="predany"]:hover polygon { fill: rgba(138, 128, 121, .3); stroke: var(--off); }
+/* Status rides on the badge ring instead, so the legend below still tells the
+   truth without painting the plan. Everything is available today, so this is
+   near-invisible until a flat is actually reserved or sold. */
+.fplan__unit[data-status="dostupny"] .fplan__tag circle { stroke: rgba(78, 115, 85, .55); }
+.fplan__unit[data-status="rezervovany"] .fplan__tag circle { stroke: var(--warn); }
+.fplan__unit[data-status="predany"] .fplan__tag circle { stroke: var(--off); }
+.fplan__unit[data-status="predany"] .fplan__tag { opacity: .6; }
 
 /* the flat you are looking at is marked permanently, and is not a link */
 .fplan__unit.is-active { cursor: default; }
-.fplan__unit.is-active polygon { fill: rgba(78, 115, 85, .2); stroke: var(--ok); stroke-width: .6; }
-.fplan__unit.is-active .fplan__tag { opacity: 1; }
-.fplan__unit.is-active .fplan__tag rect { fill: var(--ok); stroke: var(--ok); }
+.fplan__unit.is-active polygon { fill: rgba(20, 18, 15, .1); stroke: var(--ink); stroke-width: 1.5; }
+.fplan__unit.is-active .fplan__tag circle { fill: var(--ink); stroke: var(--ink); }
 .fplan__unit.is-active .fplan__tag text { fill: var(--paper); }
 
 .fplan__cap {
