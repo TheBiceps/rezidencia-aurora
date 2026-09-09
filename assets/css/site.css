@@ -1092,6 +1092,44 @@ table.rooms tbody tr.is-on,
 table.rooms tbody tr:hover,
 table.rooms tbody tr:focus-visible { background: #EFE1C9; }
 
+/* --- virtual walkthrough -------------------------------------------------- */
+.tour {
+  border: 1px solid var(--line-soft); border-radius: var(--r-md);
+  background: var(--paper-2); overflow: hidden;
+}
+.tour__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  flex-wrap: wrap; padding: 18px 20px 0;
+}
+.tour__badge {
+  font-size: .68rem; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--copper); border: 1px solid var(--line); border-radius: 100px;
+  padding: 5px 12px;
+}
+.tour__intro { padding: 12px 20px 22px; display: grid; gap: 16px; justify-items: start; }
+.tour__intro p { margin: 0; max-width: 62ch; font-size: .92rem; color: var(--text-muted); }
+
+.tour__stage { position: relative; line-height: 0; }
+.tour__stage canvas { display: block; width: 100%; height: auto; cursor: grab; }
+.tour__stage canvas:active { cursor: grabbing; }
+.tour__stage canvas:focus-visible { outline: 2px solid var(--copper); outline-offset: -2px; }
+
+/* on a phone there is no keyboard, so walking needs its own control */
+.tour__pad {
+  position: absolute; right: 14px; bottom: 14px; z-index: 2;
+  display: grid; gap: 8px;
+}
+.tour__walk {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 1px solid var(--line); background: rgba(247, 244, 239, .92);
+  color: var(--ink); font-size: 1rem; line-height: 1; cursor: pointer;
+  display: grid; place-items: center; touch-action: none;
+  transition: background-color .15s ease;
+}
+.tour__walk:hover { background: var(--copper); color: var(--paper); border-color: var(--copper); }
+.tour__note { padding: 14px 20px 18px; margin: 0; }
+@media (hover: hover) and (pointer: fine) { .tour__pad { display: none; } }
+
 /* --- "Poloha v dome": the architect's storey plan, made clickable ---------
    The overlay is a percentage-space SVG stretched over the image with
    preserveAspectRatio="none", so the outlines track the plan at every width

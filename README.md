@@ -192,6 +192,32 @@ confirmed. `initScrolly()` still exists and is a no-op without markup.)
   nothing in the client's material states which way the building faces, and the
   earlier abstract elevation was replaced by the real storey plan.*
 
+**Virtual walkthrough** (`assets/js/tour.js`, model from `_build/tour/build_model.py`)
+- A first-person walk through the actual apartment. The geometry is **not
+  generated** — it is reconstructed from the architect's vector PDF, so every
+  wall is where he drew it.
+- How: the drawing separates by pen weight (structure at 0.96, everything else
+  at 0.24). Stroke only the structural layer, flood-fill from outside, and the
+  enclosed slivers between each pair of wall faces come back as wall *bodies* —
+  true thickness, door reveals already cut.
+- Scale: the PDF carries no dimensions or scale bar, so it is solved from the
+  printed areas. Flat H's enclosed interior is 69,9 m² by the drawing, which
+  fixes **24,71 PDF units per metre**. The export re-measures at 69,8 m². After
+  separating rooms: living+kitchen+hall 43,1 (printed 43,0), bedrooms 11,2 and
+  10,6 (printed 10,7 and 10,0), store 2,3 (printed 2,2).
+- **Ceiling height is the only assumption** — a plan cannot carry it and the
+  architect's notes do not state it. 2,65 m, flagged in the model as
+  `ceilingIsAssumed` and stated to the visitor.
+- Three.js r128 from cdnjs, SRI-pinned, ~600 KB, loaded only when the visitor
+  presses the button. The floor polygon doubles as the collision hull.
+- **Why not a generated video:** all 51 models in the Freepik/Magnific
+  catalogue synthesise pixels from a prompt or an image. None is geometry-aware
+  (no 3D, CAD, mesh or depth conditioning), so none can be faithful to a plan —
+  two attempts produced convincing footage of a *different* apartment. This is
+  a category limit, not a model-choice problem.
+- **v1 is a shell:** correct walls and openings, flat colours, no glazing, no
+  furniture, no materials. Only flat H is built (`TOUR_FLATS` in `tour.js`).
+
 **Photo tiles** (`photo()` in `_build/build_pages.py`, `.photo` in the CSS)
 - One element covers both states. Without `src=` it is a dashed placeholder
   (icon, title, "Fotografia bude doplnená"). With `src=` the image is layered

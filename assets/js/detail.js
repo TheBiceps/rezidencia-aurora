@@ -92,6 +92,9 @@ function initDetail() {
      neighbour on the floor clickable, so browsing the storey is one hop */
   mountFloorPlan(root.querySelector('[data-floorplan]'), a.id);
 
+  /* the 3D walkthrough, where a reconstruction exists for this layout */
+  mountTour(root.querySelector('[data-tourslot]'), a);
+
 
   /* hovering a room in the plan highlights its row in the table, and back.
      Delegated from stable parents so a plan redraw does not unbind it. */

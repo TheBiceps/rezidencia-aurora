@@ -27,7 +27,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "42"
+ASSET_V = "43"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -790,9 +790,11 @@ def byt_html():
           <p class="form__note" style="margin-top:8px">Kliknutím na iný byt na podlaží sa presuniete na jeho detail. Šípkami ← → prechádzate dom po poradí.</p>
         </div>
 
+        <div data-tourslot></div>
+
         <div class="grid-2" style="gap:16px">
           {photo("Fotografie bytu", "Doplníme po fotodokumentácii", "", "camera")}
-          {photo("3D prehliadka", "Pripravujeme", "", "cube")}
+          {photo("Vzorový interiér", "Doplníme po dokončení vzorového bytu", "", "sun")}
         </div>
 
         <div class="detail-nav" data-detailnav></div>
@@ -815,7 +817,7 @@ def byt_html():
 </main>
 
 <div class="sticky-cta" data-sticky-cta hidden></div>
-''' + FOOT + scripts("building.js", "list.js", "floorplan.js", "detail.js"))
+''' + FOOT + scripts("building.js", "list.js", "floorplan.js", "tour.js", "detail.js"))
 
 # ---------------------------------------------------------------- redirects
 
