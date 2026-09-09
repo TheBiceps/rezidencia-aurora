@@ -218,8 +218,14 @@ function buildTour(THREE, host, model) {
 /* --- mount ---------------------------------------------------------------- */
 
 /* Reconstruction is per apartment type and done one at a time; a flat with no
-   model simply gets no tour rather than a broken button. */
-const TOUR_FLATS = ['H'];
+   model simply gets no tour rather than a broken button.
+
+   EMPTY ON PURPOSE. The walkthrough renders correct geometry but nothing else
+   -- no glazing, no materials, no furniture -- and an undressed grey shell has
+   no business on a page a buyer sees. The extraction pipeline and the model it
+   produces are still live and are the input to the Blender render; put a letter
+   back in this list only once the scene is actually dressed. */
+const TOUR_FLATS = [];
 
 function mountTour(host, unit) {
   if (!host || !unit || !TOUR_FLATS.includes(unit.letter)) return;
