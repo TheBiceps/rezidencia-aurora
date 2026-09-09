@@ -1,1 +1,4 @@
 .DS_Store
+
+# Blender working output — renders and frame sequences are large and rebuildable
+_build/tour/render/

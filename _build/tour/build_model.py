@@ -118,6 +118,56 @@ def build(letter):
     walls = contours_to_m(body, win, pad)
     floor = contours_to_m(interior, win, pad, min_px=2000, eps_px=2.0)
 
+    # Openings: bridging the wall gaps and subtracting the walls leaves exactly
+    # the holes the architect drew -- doorways between rooms, and the wide bays
+    # on the terrace facade where the glazing sits.
+    k = int(round(1.15 * UNITS_PER_M * S))          # a shade wider than a door
+    closed = cv2.morphologyEx(body, cv2.MORPH_CLOSE, np.ones((k, k), np.uint8))
+    gaps = cv2.subtract(closed, body)
+    gaps = cv2.morphologyEx(gaps, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+    per_m2 = (S * UNITS_PER_M) ** 2
+    openings = []
+    cs, _ = cv2.findContours(gaps, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for c in cs:
+        if cv2.contourArea(c) / per_m2 < 0.12:      # noise, not an opening
+            continue
+        (cx, cy), (w_, h_), ang = cv2.minAreaRect(c)
+        span = max(w_, h_) / (S * UNITS_PER_M)
+        thick = min(w_, h_) / (S * UNITS_PER_M)
+        if span > 6.0 or thick > 0.9:               # not a reveal through a wall
+            continue
+        ring = [[round((float(x) - pad) / S / UNITS_PER_M, 4),
+                 round((float(y) - pad) / S / UNITS_PER_M, 4)]
+                for x, y in cv2.boxPoints(((cx, cy), (w_, h_), ang))]
+        # a bay wider than a door is the facade glazing, and runs full height
+        openings.append({"ring": ring, "span": round(span, 2),
+                         "kind": "glazing" if span > 1.6 else "door",
+                         "head": 2.65 if span > 1.6 else 2.1})
+    print(f"  openings: {sum(1 for o in openings if o['kind']=='door')} doors, "
+          f"{sum(1 for o in openings if o['kind']=='glazing')} glazed bays")
+
+    # Rooms: plug the door openings back in and the interior falls apart into
+    # the rooms the architect drew. Their centroids are what the camera walks
+    # between, and their areas are the check that the reconstruction is right.
+    plugged = interior.copy()
+    for o in openings:
+        if o["kind"] != "door":
+            continue
+        pts = np.array([[int(round(x * UNITS_PER_M * S)) + pad,
+                         int(round(y * UNITS_PER_M * S)) + pad] for x, y in o["ring"]], np.int32)
+        cv2.fillPoly(plugged, [pts], 0)
+    n2, lab2, st2, cen2 = cv2.connectedComponentsWithStats((plugged > 0).astype(np.uint8), 4)
+    rooms = []
+    for i in range(1, n2):
+        a = st2[i, cv2.CC_STAT_AREA] / (S * UNITS_PER_M) ** 2
+        if a < 1.2:
+            continue
+        rooms.append({"m2": round(a, 1),
+                      "c": [round((cen2[i][0] - pad) / S / UNITS_PER_M, 3),
+                            round((cen2[i][1] - pad) / S / UNITS_PER_M, 3)]})
+    rooms.sort(key=lambda r: -r["m2"])
+    print("  rooms: " + ", ".join(f"{r['m2']}m2@({r['c'][0]:.1f},{r['c'][1]:.1f})" for r in rooms))
+
     X0, Y0, X1, Y1 = win
     model = {
         "flat": letter,
@@ -130,6 +180,8 @@ def build(letter):
         "size": [round((X1 - X0) / UNITS_PER_M, 3), round((Y1 - Y0) / UNITS_PER_M, 3)],
         "walls": walls,
         "floor": floor,
+        "openings": openings,
+        "rooms": rooms,
     }
     os.makedirs(OUT, exist_ok=True)
     path = os.path.join(OUT, f"flat-{letter}.json")
