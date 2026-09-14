@@ -229,9 +229,18 @@ confirmed. `initScrolly()` still exists and is a no-op without markup.)
   fires and the tile sits there as an empty box. Load-driven promotion means a
   missing, slow, or never-requested file always degrades to the designed
   placeholder.
-- **Waiting on:** `assets/img/skola-novohradska.jpg` (§7 aerial of Spojená
-  škola Novohradská). The markup, alt text and credit are already wired to
-  that exact path — dropping the file in is the whole job.
+- **Every photo is currently an AI-generated demo stand-in** — 17 images in
+  `assets/img/*.webp` filling all 21 slots (Miletička, the school aerial, the
+  terrace, the P6 render, the gallery, both apartment-page tiles and the six
+  Štandard tiles). Several depict real named places, so each carries a small
+  "Ilustračný obrázok" credit. That label is one constant, `DEMO_IMG` in
+  `_build/build_pages.py`: set it to `None` once real photography is in and
+  every label goes. Replace an image by dropping a file at the same path.
+- `.photo` resets `margin: 0`. photo() emits a `<figure>`, and the browser's
+  default `margin: 1em 40px` had been insetting every tile 40px from both sides
+  of its column. Ratio tiles (`--wide`, `--tall`, `--air`, `--flush`) also set
+  `min-height: 0`: through `aspect-ratio`, a min-height becomes a min-width
+  (220px × 16/9 = 391px), which pushed wide tiles off a 375px phone.
 
 **Everywhere**
 - Cards, feature tiles and placeholders carry a cursor-following spotlight.
@@ -322,7 +331,9 @@ Tokens are at the top of `assets/css/site.css`.
 
 - Ink `#14120F`, paper `#F7F4EF`, sand accent `#A98C64`
 - Status: available `#4E7355`, reserved `#9A7226`, sold `#8A8079`
-- Display type Cormorant Garamond, UI type Inter (both Google Fonts, latin-ext)
+- Display type Newsreader (self-hosted in `assets/fonts/`, `size-adjust: 92%` so it sits on
+  Cormorant's old metrics), UI type Inter (Google Fonts). Cormorant was dropped because its
+  Slovak accents are drawn detached — the circumflex on "ô" floated high above the letter.
 
 ## Scripts
 

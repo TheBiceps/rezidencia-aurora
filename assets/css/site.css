@@ -1,8 +1,59 @@
 /* ===========================================================================
    REZIDENCIA AURORA — design system
    Palette: warm architectural. Ink + sand + paper.
-   Type:    Cormorant Garamond (display) / Inter (UI, body)
+   Type:    Newsreader (display, self-hosted) / Inter (UI, body)
    =========================================================================== */
+
+/* --- display face ----------------------------------------------------------
+   Newsreader, self-hosted. It replaced Cormorant Garamond, whose Slovak accents
+   are drawn detached: the circumflex on "ô" floated as a tall separate roof
+   over the letter ("spôsob", "prispôsobí") and the caron on "Ľ" as a loose tick.
+   Newsreader draws them compact and attached, and keeps the same light,
+   editorial feel with the weights and italics the site uses.
+
+   size-adjust: 92% is not cosmetic. At equal font-size Newsreader runs 14%
+   taller in x-height, 10% taller in cap height and 7% wider than Cormorant;
+   92% lands its cap height and line length back on the old ones, so no heading
+   rewraps and the nowrap key figures cannot overflow. Doing it on the face
+   means none of the 25 display font-size rules had to change.
+
+   Latin + Latin Extended only: that is everything Slovak needs. */
+@font-face {
+  font-family: "Newsreader";
+  font-style: italic;
+  font-weight: 200 800;
+  font-display: swap;
+  size-adjust: 92%;
+  src: url("../fonts/newsreader-italic-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Newsreader";
+  font-style: italic;
+  font-weight: 200 800;
+  font-display: swap;
+  size-adjust: 92%;
+  src: url("../fonts/newsreader-italic-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  size-adjust: 92%;
+  src: url("../fonts/newsreader-normal-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  size-adjust: 92%;
+  src: url("../fonts/newsreader-normal-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 :root {
   /* --- colour ------------------------------------------------------------ */
@@ -36,7 +87,7 @@
   --off-bg:     #E9E5DF;
 
   /* --- type -------------------------------------------------------------- */
-  --f-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --f-display: "Newsreader", "Iowan Old Style", Georgia, serif;
   --f-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* --- space / shape ----------------------------------------------------- */
@@ -699,6 +750,10 @@ table.rooms tfoot td { font-weight: 600; border-bottom: 0; border-top: 1px solid
   color: var(--text-muted);
   min-height: 220px;
   overflow: hidden;
+  /* photo() emits a <figure>, and browsers give figures margin: 1em 40px. Left
+     in, it inset every tile 40px from both sides of its column, and on the
+     full-width school aerial it pushed the tile 40px off a phone screen. */
+  margin: 0;
 }
 /* the icon is decorative — without an explicit size it inherits the tile width */
 .photo > svg { width: 30px; height: 30px; opacity: .4; flex: none; }
@@ -814,6 +869,15 @@ table.rooms tfoot td { font-weight: 600; border-bottom: 0; border-top: 1px solid
 .foot a { text-decoration: none; color: var(--text-inv-muted); transition: color .2s ease; font-size: .92rem; }
 .foot a:hover { color: var(--text-inv); }
 .foot__brand { font-family: var(--f-display); font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 300; margin-bottom: 12px; }
+/* The address used to be a .badge pill. Badges are styled for light sections,
+   so on the ink footer it came out as dark grey on near-black, and the pill's
+   padding set it 15px in from the paragraph above. It is an address, not a
+   tag: plain text, flush left, legible. */
+.foot__addr {
+  margin-top: 22px; font-style: normal;
+  font-size: .76rem; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--text-inv-muted);
+}
 .foot__bottom { margin-top: clamp(40px, 6vw, 72px); padding-top: 24px; border-top: 1px solid var(--line-inv);
   display: flex; flex-wrap: wrap; gap: 10px 26px; justify-content: space-between;
   font-size: .78rem; color: var(--text-inv-muted); }
@@ -1626,8 +1690,12 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
 .section--ink .point { border-color: var(--line-inv); color: var(--text-inv); }
 
 /* --- photo tile proportions ----------------------------------------------- */
-.photo--wide { aspect-ratio: 16 / 9; }
-.photo--tall { aspect-ratio: 4 / 5; min-height: 380px; }
+/* Ratio tiles must not keep the base min-height: through aspect-ratio a minimum
+   HEIGHT becomes a minimum WIDTH (220px x 16/9 = 391px), and that pushed every
+   wide photo 16px past a 375px phone and dragged the page sideways. The ratio
+   alone sets the height here; on desktop it was always the larger of the two. */
+.photo--wide { aspect-ratio: 16 / 9; min-height: 0; }
+.photo--tall { aspect-ratio: 4 / 5; min-height: 0; }
 .photo--ink { background: repeating-linear-gradient(-45deg, transparent 0 11px, rgba(247,244,239,.045) 11px 22px), var(--ink-2);
   border-color: var(--line-inv); color: var(--text-inv-muted); }
 .photo--ink > b { color: var(--text-inv); }
@@ -1685,8 +1753,6 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
 .reach__row[data-tier="near"] .reach__time { color: var(--copper-2); }
 .reach__row[data-tier="far"] { opacity: .45; }
 .reach__row.is-hot .reach__name { color: var(--copper-2); }
-.reach__summary { font-size: .9rem; color: var(--text-inv-muted); margin: 0 0 14px; }
-.reach__summary b { color: var(--text-inv); font-weight: 600; }
 @media (max-width: 999px) { .reach { max-height: 340px; } }
 
 /* --- section 8: mobility cards ----------------------------------------------- */
@@ -1728,11 +1794,13 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
 /* --- section 13: standard cards ----------------------------------------------- */
 .std { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
 .std__card { background: var(--paper); border: 1px solid var(--line-soft); border-radius: var(--r-md); overflow: hidden; display: flex; flex-direction: column; }
-.std__photo {
-  aspect-ratio: 4 / 3; display: grid; place-items: center; text-align: center; padding: 16px;
-  background: repeating-linear-gradient(-45deg, transparent 0 11px, rgba(20,18,15,.035) 11px 22px), var(--paper-2);
-  color: var(--text-muted); font-size: .66rem; letter-spacing: .16em; text-transform: uppercase;
+/* the Štandard tiles use the shared photo() tile, flush to the top of their card:
+   the card already has the border and the rounded corners */
+.photo--flush {
+  aspect-ratio: 4 / 3; min-height: 0; padding: 16px;
+  border: 0; border-radius: 0;
 }
+.photo--flush > b { font-size: 1.05rem; }
 .std__body { padding: 22px 24px 26px; }
 .std__body h3 { font-size: 1.35rem; margin-bottom: 8px; }
 .std__body p { margin: 0; font-size: .94rem; color: var(--text-muted); }

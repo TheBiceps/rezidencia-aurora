@@ -20,6 +20,12 @@ OUT = "rezidencia"
 SITE = "https://prievozska6.sk"          # placeholder domain — confirm with client
 NAME = "P6"
 ADDRESS = "Prievozská 6, 821 09 Bratislava-Ružinov"
+
+# Every photo on the site is currently an AI-generated stand-in, several of real
+# named places (Miletička, the school, Nivy, the Danube). They carry a small
+# "illustrative" credit so nobody takes them for photographs of those places.
+# Set to None once the real photography is in and the labels all disappear.
+DEMO_IMG = "Ilustračný obrázok"
 EMAIL = "info@prievozska6.sk"            # placeholder
 PHONE = "+421 900 000 000"               # placeholder
 
@@ -27,7 +33,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "44"
+ASSET_V = "47"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -102,7 +108,8 @@ def head(title, desc, page, extra=""):
 {noindex}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" href="assets/fonts/newsreader-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/site.css?v={ASSET_V}">
 {extra}</head>
 <body>
@@ -149,9 +156,7 @@ FOOT = f'''<footer class="foot">
         <p style="color:var(--text-inv-muted);max-width:38ch;font-size:.95rem">
           Mestské bývanie na Prievozskej 6. Miletička, škola, biznis zóna, Nivy aj nové centrum Bratislavy v prirodzenom dosahu.
         </p>
-        <div class="badge-row" style="margin-top:22px">
-          <span class="badge">{ADDRESS}</span>
-        </div>
+        <address class="foot__addr">{ADDRESS}</address>
       </div>
       <div>
         <h4>Navigácia</h4>
@@ -264,12 +269,12 @@ FAQ = [
 # §13 — six cards, one concrete benefit each, two sentences at most.
 # ⚠️ Standard is NOT yet confirmed by the project — the page says so.
 STANDARD = [
- ("Svetlo a okná",                    "Veľkoformátové okná s izolačným trojsklom. Viac denného svetla v izbách, menej hluku z ulice.",                        "detail: okenný profil a sklo"),
- ("Vykurovanie a chladenie",          "Podlahové kúrenie v celom byte s prípravou na chladenie. Stála teplota bez radiátorov na stenách.",                 "detail: podlahové kúrenie"),
- ("Kúpeľne",                          "Veľkoformátový obklad a zabudované zariaďovacie predmety. Kúpeľňa pripravená na bývanie od prvého dňa.",           "detail: obklad kúpeľne"),
- ("Podlahy a interiérové dvere",      "Drevené podlahy v obytných miestnostiach a dvere v jednotnom dizajne. Jeden detail od predsiene po spálňu.",        "detail: podlaha a dvere"),
- ("Parkovanie a nabíjanie",           "Parkovacie státie v garáži pod domom s prípravou na nabíjanie elektromobilu. Auto pod domom, nie na ulici.",        "detail: garáž a nabíjanie"),
- ("Bezpečnosť a spoločné priestory",  "Čipový vstup do domu a garáže, kamerový systém v spoločných priestoroch. Kočikáreň a kobky pod uzamknutím.",        "detail: vstup a spoločné priestory"),
+ ("Svetlo a okná",                    "Veľkoformátové okná s izolačným trojsklom. Viac denného svetla v izbách, menej hluku z ulice.",                        "detail: okenný profil a sklo", "std-okna"),
+ ("Vykurovanie a chladenie",          "Podlahové kúrenie v celom byte s prípravou na chladenie. Stála teplota bez radiátorov na stenách.",                 "detail: podlahové kúrenie", "std-kurenie"),
+ ("Kúpeľne",                          "Veľkoformátový obklad a zabudované zariaďovacie predmety. Kúpeľňa pripravená na bývanie od prvého dňa.",           "detail: obklad kúpeľne", "std-kupelna"),
+ ("Podlahy a interiérové dvere",      "Drevené podlahy v obytných miestnostiach a dvere v jednotnom dizajne. Jeden detail od predsiene po spálňu.",        "detail: podlaha a dvere", "std-podlahy"),
+ ("Parkovanie a nabíjanie",           "Parkovacie státie v garáži pod domom s prípravou na nabíjanie elektromobilu. Auto pod domom, nie na ulici.",        "detail: garáž a nabíjanie", "std-garaz"),
+ ("Bezpečnosť a spoločné priestory",  "Čipový vstup do domu a garáže, kamerový systém v spoločných priestoroch. Kočikáreň a kobky pod uzamknutím.",        "detail: vstup a spoločné priestory", "std-vstup"),
 ]
 
 # §12 — categories the brief wants listed here; values pending real data.
@@ -296,9 +301,10 @@ def index_html():
     chap = "".join(f'<a class="chapters__link" href="{h}">{t}</a>' for h, t in chapters)
 
     std = "".join(f'''<article class="std__card reveal">
-        <div class="std__photo">Fotografia materiálu<br>{cap}</div>
+        {photo("Fotografia materiálu", cap, "photo--flush", "camera",
+               src=f"assets/img/{img}.webp", alt=f"{t} — ilustračný detail", credit=DEMO_IMG)}
         <div class="std__body"><h3>{t}</h3><p>{d}</p></div>
-      </article>''' for t, d, cap in STANDARD)
+      </article>''' for t, d, cap, img in STANDARD)
 
     params = "".join(
         f'<div class="params__item"><dt>{k}</dt><dd{"" if v else " class=\"is-tbd\""}>{v or "Upresníme"}</dd></div>'
@@ -394,10 +400,6 @@ def index_html():
       <div class="keyfig"><b>do 1,5 km</b><span>Nivy, Nivy Tower, CBC, Twin City, Sky Park</span></div>
       <div class="keyfig"><b>15 – 20 min</b><span>autom na letisko Bratislava</span></div>
     </div>
-    <p class="form__note" style="margin-top:12px">
-      Vzdialenosti a časy sú merané po reálnych peších a cyklistických trasách z Prievozskej 6
-      (OpenStreetMap / OSRM). Časy autom sú bez dopravnej špičky.
-    </p>
   </div>
 </section>
 
@@ -416,7 +418,9 @@ def index_html():
 <!-- §4 Miletička ======================================================= -->
 <section class="section">
   <div class="shell shell-wide">
-    {photo("Trhovisko Miletičova", "Fotografia · autentická, nie render", "photo--wide reveal")}
+    {photo("Trhovisko Miletičova", "Fotografia · autentická, nie render", "photo--wide reveal",
+           src="assets/img/mileticka.webp", credit=DEMO_IMG,
+           alt="Trhovisko Miletičova — rady stánkov s ovocím, zeleninou a kvetmi")}
     <div class="grid-2" style="margin-top:clamp(30px,4vw,52px);align-items:start">
       <div class="reveal">
         <p class="eyebrow">Každodenný život</p>
@@ -449,9 +453,6 @@ def index_html():
         "Prievozská, Plynárenská a Mlynské nivy tvoria hlavnú biznis zónu Bratislavy. Apollo Business Center II je prakticky v susedstve; Twin City, Nivy Tower, CBC a Sky Park sú na dosah pešo či na bicykli.")}</p>
     </div>
     <ol class="route" data-route></ol>
-    <p class="form__note" style="margin-top:18px">
-      Vzdialenosti sú merané po reálnych trasách z P6 (OpenStreetMap / OSRM), nie vzdušnou čiarou.
-    </p>
   </div>
 </section>
 
@@ -487,10 +488,9 @@ def index_html():
         </div>
       </div>
       <div>
-        <p class="reach__summary" data-reach-summary></p>
         <ol class="reach" data-reach-list></ol>
         <p class="form__note" style="margin-top:14px;color:var(--text-inv-muted)">
-          Reálne trasy z Prievozskej 6 (OpenStreetMap / OSRM). Kliknutím na miesto sa naň mapa priblíži.
+          Kliknutím na miesto sa naň mapa priblíži.
         </p>
       </div>
     </div>
@@ -503,9 +503,9 @@ def index_html():
     <div class="reveal">{photo(
       "Spojená škola Novohradská", "Fotografia bude doplnená",
       "photo--air", "camera",
-      src="assets/img/skola-novohradska.jpg",
+      src="assets/img/skola-novohradska.webp",
       alt="Letecký pohľad na areál Spojenej školy Novohradská — školské budovy, bežecký ovál, ihrisko a detské ihrisko, 547 m od P6",
-      credit="Spojená škola Novohradská · 547 m od P6")}</div>
+      credit=DEMO_IMG)}</div>
 
     <div class="grid-2" style="align-items:start;margin-top:clamp(28px,4vw,48px)">
       <div class="reveal">
@@ -595,7 +595,9 @@ def index_html():
         <p class="form__note">Materiály fasády, členenie podlaží a orientáciu bytov doplníme po potvrdení architektonického riešenia.</p>
       </div>
     </div>
-    <div style="margin-top:clamp(30px,4vw,52px)">{photo("Vizualizácia P6", "Vizualizácia · s panorámou Downtownu", "photo--wide reveal", "cube")}</div>
+    <div style="margin-top:clamp(30px,4vw,52px)">{photo("Vizualizácia P6", "Vizualizácia · s panorámou Downtownu", "photo--wide reveal", "cube",
+           src="assets/img/vizualizacia-p6.webp", credit=DEMO_IMG,
+           alt="Ilustračná vizualizácia päťpodlažného bytového domu s panorámou Downtownu v pozadí")}</div>
   </div>
 </section>
 
@@ -615,7 +617,9 @@ def index_html():
         </ul>
         <p class="form__note" style="margin-top:14px;color:var(--text-inv-muted)">Konkrétne vybavenie terasy upresníme podľa finálneho projektu.</p>
       </div>
-      <div class="reveal">{photo("Komunitná terasa", "Fotografia · večerná atmosféra", "photo--ink photo--tall", "sun")}</div>
+      <div class="reveal">{photo("Komunitná terasa", "Fotografia · večerná atmosféra", "photo--ink photo--tall", "sun",
+           src="assets/img/terasa.webp", credit=DEMO_IMG,
+           alt="Strešná komunitná terasa večer — pergola, zeleň, spoločný stôl a svetelné girlandy")}</div>
     </div>
   </div>
 </section>
@@ -793,8 +797,12 @@ def byt_html():
         <div data-tourslot></div>
 
         <div class="grid-2" style="gap:16px">
-          {photo("Fotografie bytu", "Doplníme po fotodokumentácii", "", "camera")}
-          {photo("Vzorový interiér", "Doplníme po dokončení vzorového bytu", "", "sun")}
+          {photo("Fotografie bytu", "Doplníme po fotodokumentácii", "", "camera",
+                 src="assets/img/byt-spalna.webp", credit=DEMO_IMG,
+                 alt="Ilustračná spálňa — manželská posteľ, dubová podlaha, okno so záclonou")}
+          {photo("Vzorový interiér", "Doplníme po dokončení vzorového bytu", "", "sun",
+                 src="assets/img/interier.webp", credit=DEMO_IMG,
+                 alt="Ilustračná obývačka s jedálňou a balkónom")}
         </div>
 
         <div class="detail-nav" data-detailnav></div>
@@ -842,11 +850,20 @@ def redirect_html(target, title):
 
 def galeria_html():
     tiles = [
-        ("Miletička ráno", "photo--wide"), ("Cyklista na Prievozskej", ""), ("Vizualizácia P6", ""),
-        ("Nivy večer", "photo--wide"), ("Cesta do školy", ""), ("Apollo a biznis zóna", ""),
-        ("Komunitná terasa", "photo--wide"), ("Dunajská promenáda", ""), ("Vzorový interiér", ""),
+        ("Miletička ráno", "photo--wide", "mileticka"),
+        ("Cyklista na Prievozskej", "", "cyklista"),
+        ("Vizualizácia P6", "", "vizualizacia-p6"),
+        ("Nivy večer", "photo--wide", "nivy"),
+        ("Cesta do školy", "", "cesta-do-skoly"),
+        ("Apollo a biznis zóna", "", "biznis-zona"),
+        ("Komunitná terasa", "photo--wide", "terasa"),
+        ("Dunajská promenáda", "", "dunaj"),
+        ("Vzorový interiér", "", "interier"),
     ]
-    g = "".join(f'<div class="{"gallery__wide" if c else ""}">{photo(t, "Fotografia bude doplnená", c or "")}</div>' for t, c in tiles)
+    g = "".join(
+        f'<div class="{"gallery__wide" if c else ""}">'
+        f'{photo(t, "Fotografia bude doplnená", c or "", src=f"assets/img/{img}.webp", alt=t, credit=DEMO_IMG)}'
+        f'</div>' for t, c, img in tiles)
     return (head(f"Galéria — {NAME}",
                  "Fotografie a vizualizácie: Miletička, biznis zóna, Nivy, cesta do školy, komunitná terasa a vizualizácia P6.",
                  "galeria.html")

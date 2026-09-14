@@ -147,28 +147,30 @@ function wire(el, map, marks, L) {
   const modeBtns = [...el.querySelectorAll('[data-mode]')];
   const catBtns = [...el.querySelectorAll('[data-cat]')];
   const list = el.querySelector('[data-reach-list]');
-  const summary = el.querySelector('[data-reach-summary]');
+  const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let mode = 'pesi', cat = 'all';
 
+  const inCat = p => cat === 'all' || p.cats.includes(cat);
+
+  /* A chosen category takes the other pins OFF the map rather than greying
+     them out: a dimmed pin still carries its label, and with Nivy, Nivy Tower,
+     Sky Park, Twin City, Škola and Apollo inside a kilometre the labels were
+     piling on top of each other whatever the filter said. */
   function render() {
     const key = MODES[mode].k;
-    const rows = POIS.filter(p => cat === 'all' || p.cats.includes(cat))
+    const rows = POIS.filter(inCat)
                      .slice().sort((a, b) => (a[key] ?? 1e9) - (b[key] ?? 1e9));
     POIS.forEach(p => {
       const mk = marks[p.id]; if (!mk) return;
-      const on = cat === 'all' || p.cats.includes(cat);
+      if (!inCat(p)) { if (map.hasLayer(mk)) map.removeLayer(mk); return; }
+      if (!map.hasLayer(mk)) mk.addTo(map);
+      /* re-adding a marker rebuilds its DOM, so style it after, not before */
       const t = p[key];
       const pin = mk.getElement() && mk.getElement().querySelector('.pin');
-      if (pin) { pin.dataset.tier = tier(t); pin.classList.toggle('is-off', !on); }
-      const tip = mk.getTooltip();
-      if (tip) {
-        const node = tip.getElement();
-        if (node) {
-          const slot = node.querySelector('.t-time');
-          if (slot) slot.textContent = on ? ` ${fmtT(t)}` : '';
-          node.classList.toggle('is-off', !on);
-        }
-      }
+      if (pin) pin.dataset.tier = tier(t);
+      const node = mk.getTooltip() && mk.getTooltip().getElement();
+      const slot = node && node.querySelector('.t-time');
+      if (slot) slot.textContent = ` ${fmtT(t)}`;
     });
     if (list) list.innerHTML = rows.map(p => `
       <li class="reach__row" data-id="${p.id}" data-tier="${tier(p[key])}">
@@ -176,11 +178,15 @@ function wire(el, map, marks, L) {
         <span class="reach__cats">${p.cats.map(c => CATS[c]).join(' · ')} · ${fmtM(p.m)}</span>
         <span class="reach__time">${fmtT(p[key])}</span>
       </li>`).join('');
-    if (summary) {
-      const n5 = rows.filter(p => p[key] != null && p[key] <= 5).length;
-      const n15 = rows.filter(p => p[key] != null && p[key] <= 15).length;
-      summary.innerHTML = `<b>${n5}</b> ${plural(n5, 'miesto', 'miesta', 'miest')} do 5 minút · <b>${n15}</b> do 15 minút — ${MODES[mode].label.toLowerCase()}`;
-    }
+  }
+
+  /* frame whatever is left, P6 included, so a category never opens with half
+     its places off-screen */
+  function frame() {
+    const pts = POIS.filter(p => inCat(p) && (cat !== 'all' || !p.far)).map(p => [p.lat, p.lng]);
+    map.closePopup();
+    map.fitBounds(L.latLngBounds([[P6.lat, P6.lng], ...pts]),
+                  { padding: [56, 56], maxZoom: 16, animate: !calm });
   }
 
   modeBtns.forEach(b => b.addEventListener('click', () => {
@@ -192,6 +198,7 @@ function wire(el, map, marks, L) {
     cat = b.dataset.cat;
     catBtns.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
     render();
+    frame();
   }));
   if (list) {
     const hot = (id, on) => {
