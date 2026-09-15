@@ -33,7 +33,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "48"
+ASSET_V = "49"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -202,6 +202,10 @@ def photo(title, cap, cls="", ico="camera", src=None, alt="", credit=None):
     is exactly what `loading="lazy"` does to anything below the fold."""
     img = cred = ""
     if src:
+        # version the URL like the CSS/JS: replacing a photo in place otherwise
+        # leaves returning visitors (and the Pages CDN) on the cached old file
+        if not src.startswith(("http:", "https:", "data:")) and "?" not in src:
+            src = f"{src}?v={ASSET_V}"
         img = (f'<img class="photo__img" src="{src}" alt="{alt}" loading="lazy" decoding="async"'
                f' onload="this.closest(\'.photo\').classList.add(\'has-img\')"'
                f' onerror="this.remove()">')
