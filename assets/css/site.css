@@ -730,6 +730,10 @@ table.rooms th { text-align: left; font-size: .66rem; letter-spacing: .16em; tex
 table.rooms td { padding: 12px 0; border-bottom: 1px solid var(--line-soft); font-size: .92rem; }
 table.rooms td:last-child, table.rooms th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
 table.rooms tfoot td { font-weight: 600; border-bottom: 0; border-top: 1px solid var(--line); }
+/* "Interiér spolu" is a subtotal between the rooms and the balcony: weighted
+   like the grand total, but it is a summary, not a room to hover */
+table.rooms .rooms__sum td { font-weight: 600; border-top: 1px solid var(--line); }
+table.rooms tbody.rooms__sum tr:hover { background: none; }
 
 .detail-nav { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 

@@ -33,7 +33,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "47"
+ASSET_V = "48"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -261,20 +261,24 @@ def final_block():
 FAQ = [
  ("Ako prebieha rezervácia bytu?", "Vyberiete si byt, podpíšeme rezervačnú zmluvu a uhradíte rezervačný poplatok. Byt stiahneme z ponuky a pripravíme zmluvu o budúcej kúpnej zmluve."),
  ("Dá sa dispozícia bytu upraviť?", "Áno, klientske zmeny riešime individuálne do uzávierky, ktorú si dohodneme pri podpise zmluvy."),
- ("Je možné kúpiť parkovacie státie?", "Áno. Parkovacie státia a pivničné kobky sa predávajú samostatne k jednotlivým bytom."),
+ ("Je možné kúpiť parkovacie státie?", "Áno. Pred domom je 50 parkovacích miest. Parkovacie státia a pivničné kobky sa predávajú samostatne k jednotlivým bytom."),
  ("Ponúkate virtuálnu prehliadku?", "Pripravujeme ju. Po dokončení fotodokumentácie sprístupníme 3D prehliadku každej dispozície priamo v detaile bytu."),
  ("Ako získam katalóg?", "Napíšte nám cez formulár a katalóg vám pošleme e-mailom hneď, ako bude pripravený."),
 ]
 
 # §13 — six cards, one concrete benefit each, two sentences at most.
 # ⚠️ Standard is NOT yet confirmed by the project — the page says so.
+# The brief names only the card TOPICS. Parking and common spaces are now as the
+# investor stated them (WhatsApp, 2026-09-15): no garage — 50 spaces in front of
+# the building; chip entry, community terrace, gym. EV charging is unconfirmed,
+# so it is marked "upresníme" rather than promised.
 STANDARD = [
  ("Svetlo a okná",                    "Veľkoformátové okná s izolačným trojsklom. Viac denného svetla v izbách, menej hluku z ulice.",                        "detail: okenný profil a sklo", "std-okna"),
  ("Vykurovanie a chladenie",          "Podlahové kúrenie v celom byte s prípravou na chladenie. Stála teplota bez radiátorov na stenách.",                 "detail: podlahové kúrenie", "std-kurenie"),
  ("Kúpeľne",                          "Veľkoformátový obklad a zabudované zariaďovacie predmety. Kúpeľňa pripravená na bývanie od prvého dňa.",           "detail: obklad kúpeľne", "std-kupelna"),
  ("Podlahy a interiérové dvere",      "Drevené podlahy v obytných miestnostiach a dvere v jednotnom dizajne. Jeden detail od predsiene po spálňu.",        "detail: podlaha a dvere", "std-podlahy"),
- ("Parkovanie a nabíjanie",           "Parkovacie státie v garáži pod domom s prípravou na nabíjanie elektromobilu. Auto pod domom, nie na ulici.",        "detail: garáž a nabíjanie", "std-garaz"),
- ("Bezpečnosť a spoločné priestory",  "Čipový vstup do domu a garáže, kamerový systém v spoločných priestoroch. Kočikáreň a kobky pod uzamknutím.",        "detail: vstup a spoločné priestory", "std-vstup"),
+ ("Parkovanie a nabíjanie",           "50 parkovacích miest priamo pred domom. Možnosť nabíjania elektromobilov upresníme.",                               "detail: parkovanie pred domom", "std-parkovanie"),
+ ("Bezpečnosť a spoločné priestory",  "Čipový vstup do domu. Obyvatelia majú k dispozícii komunitnú terasu a fitness.",                                   "detail: čipový vstup do domu", "std-vstup"),
 ]
 
 # §12 — categories the brief wants listed here; values pending real data.
@@ -285,8 +289,8 @@ PARAMS = [
  ("Typológie", "1- až 3-izbové"),
  ("Výmery bytov", "30,1 – 77,9 m²"),
  ("Balkóny", "8,5 – 18,3 m²"),
- ("Parkovacie miesta", None),
- ("Pivničné kobky", None),
+ ("Parkovacie miesta", "50, pred domom"),
+ ("Pivničné kobky", "1,5 – 3,0 m²"),
 ]
 
 def index_html():
@@ -775,8 +779,10 @@ def byt_html():
               <p class="eyebrow">Výmery miestností</p>
               <table class="rooms" data-rooms>
                 <thead><tr><th scope="col">Miestnosť</th><th scope="col">Plocha</th></tr></thead>
-                <tbody></tbody>
-                <tfoot><tr><td>Interiér spolu</td><td>—</td></tr></tfoot>
+                <tbody data-rooms-in></tbody>
+                <tbody class="rooms__sum"><tr><td>Interiér spolu</td><td data-sum-in>—</td></tr></tbody>
+                <tbody data-rooms-ext></tbody>
+                <tfoot><tr><td>Spolu</td><td data-sum-all>—</td></tr></tfoot>
               </table>
             </div>
           </div>

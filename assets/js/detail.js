@@ -59,9 +59,14 @@ function initDetail() {
   if (dl) dl.href = a.plan;
 
   const rt = root.querySelector('[data-rooms]');
-  rt.querySelector('tbody').innerHTML = a.roomList
+  rt.querySelector('[data-rooms-in]').innerHTML = a.roomList
     .map((r, i) => `<tr data-room="${i}"><td>${r.name}</td><td>${fmtArea1(r.area)} m²</td></tr>`).join('');
-  rt.querySelector('tfoot td:last-child').textContent = fmtArea(a.area) + ' m²';
+  rt.querySelector('[data-sum-in]').textContent = fmtArea(a.area) + ' m²';
+  /* the exterior — on P6 always a balcony — then the grand total, which is the
+     same figure as SPOLU in the spec strip above, so the two cannot disagree */
+  rt.querySelector('[data-rooms-ext]').innerHTML = a.ext > 0
+    ? `<tr><td>${a.extKind}</td><td>${fmtArea1(a.ext)} m²</td></tr>` : '';
+  rt.querySelector('[data-sum-all]').textContent = fmtArea(a.total) + ' m²';
 
   root.querySelector('[data-aside]').innerHTML = `
     <div class="aside__box">
@@ -98,7 +103,7 @@ function initDetail() {
 
   /* hovering a room in the plan highlights its row in the table, and back.
      Delegated from stable parents so a plan redraw does not unbind it. */
-  const roomsBody = rt.querySelector('tbody');
+  const roomsBody = rt.querySelector('[data-rooms-in]');
   const mark = (key, on) => {
     root.querySelectorAll(`[data-room="${key}"]`).forEach(el => el.classList.toggle('is-on', on));
   };

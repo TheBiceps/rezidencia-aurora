@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" href="assets/fonts/newsreader-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/site.css?v=47">
+<link rel="stylesheet" href="assets/css/site.css?v=48">
 </head>
 <body>
 <a class="skip-link" href="#main">Preskočiť na obsah</a>
@@ -81,8 +81,10 @@
               <p class="eyebrow">Výmery miestností</p>
               <table class="rooms" data-rooms>
                 <thead><tr><th scope="col">Miestnosť</th><th scope="col">Plocha</th></tr></thead>
-                <tbody></tbody>
-                <tfoot><tr><td>Interiér spolu</td><td>—</td></tr></tfoot>
+                <tbody data-rooms-in></tbody>
+                <tbody class="rooms__sum"><tr><td>Interiér spolu</td><td data-sum-in>—</td></tr></tbody>
+                <tbody data-rooms-ext></tbody>
+                <tfoot><tr><td>Spolu</td><td data-sum-all>—</td></tr></tfoot>
               </table>
             </div>
           </div>
@@ -181,13 +183,13 @@
     </div>
   </div>
 </footer>
-<script src="assets/js/data.js?v=47"></script>
-<script src="assets/js/site.js?v=47"></script>
-<script src="assets/js/motion.js?v=47"></script>
-<script src="assets/js/building.js?v=47"></script>
-<script src="assets/js/list.js?v=47"></script>
-<script src="assets/js/floorplan.js?v=47"></script>
-<script src="assets/js/tour.js?v=47"></script>
-<script src="assets/js/detail.js?v=47"></script>
+<script src="assets/js/data.js?v=48"></script>
+<script src="assets/js/site.js?v=48"></script>
+<script src="assets/js/motion.js?v=48"></script>
+<script src="assets/js/building.js?v=48"></script>
+<script src="assets/js/list.js?v=48"></script>
+<script src="assets/js/floorplan.js?v=48"></script>
+<script src="assets/js/tour.js?v=48"></script>
+<script src="assets/js/detail.js?v=48"></script>
 </body>
 </html>

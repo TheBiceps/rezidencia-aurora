@@ -108,7 +108,7 @@ courtyard side: **G, F, E**. See `_build/plans/README.md`.
 | Prices | `price: null` everywhere → renders "Cena na vyžiadanie" |
 | Availability | everything `dostupny`; update as units are reserved or sold |
 | Orientation | **needs a site plan with a north arrow.** The field, the filter and the compass were removed rather than guessed |
-| Parking, cellars | parameters show "Upresníme" |
+| EV charging | the parking card says "upresníme". Parking itself is settled: **50 spaces, outdoor, in front of the building — there is no garage** (investor, 2026-09-15). Cellars are 1,5–3,0 m². |
 | Standard of finish | six cards are written but flagged as unconfirmed |
 | Harmonogram | hidden until `MILESTONES` is filled in |
 

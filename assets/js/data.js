@@ -19,7 +19,7 @@
  *   status       everything is "dostupny"; update as units get reserved/sold
  *   orientation  needs a site plan with a north arrow; the field, the filter
  *                and the compass were removed rather than guessed
- *   parking, cellars, standard of finish
+ *   standard of finish, EV charging (parking and cellars: see _build/build_pages.py PARAMS)
  *
  *   id        "2.A"  floor + apartment letter, as labelled on the drawings
  *   floor     1-5    nadzemné podlažie
