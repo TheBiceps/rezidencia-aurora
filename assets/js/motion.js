@@ -213,7 +213,7 @@ function initChapters() {
   if (!bar) return;
   const links = [...bar.querySelectorAll('a[href^="#"]')];
   const targets = links.map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
-  const hero = document.querySelector('.hero');
+  const hero = document.querySelector('[data-fly], .hero');
   if (!targets.length) return;
 
   /* keep the active chip in view on the phone rail */

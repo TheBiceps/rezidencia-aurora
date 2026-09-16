@@ -41,7 +41,7 @@ filtered by Jekyll.
 
 | File | Purpose |
 |---|---|
-| `index.html` | The whole narrative: hero → orientation map → manifesto → Miletička → business zone → five-minute city → school → Nivy → sport → architecture → community terrace → parameters → standard → units → closing block. Sticky chapter nav (Lokalita / Projekt / Štandard / Byty). |
+| `index.html` | The whole narrative: fly-by hero → building picker (`#vyber-bytu`) → orientation map → manifesto → Miletička → business zone → five-minute city → school → Nivy → sport → architecture → community terrace → parameters → standard → units → closing block. Sticky chapter nav (Lokalita / Projekt / Štandard / Byty). |
 | `byty.html` | Unit cards with a floor-plan thumbnail; filters exactly per the brief: rooms, floor, area, terrace/balcony, orientation, availability. No table. |
 | `byt.html?id=4.03` | Unit detail: specs, the architect's rendered plan, room table, clickable storey plan ("Poloha v dome"), similar units, sticky price bar on phones. |
 | `galeria.html` | Photo placeholders for the shots the brief asks for (Miletička, cyclist, Nivy at night, school run, terrace). |
@@ -124,17 +124,53 @@ the project is being pre-sold without final permits.
 
 Nothing here is decorative-only; each piece is doing a job.
 
-**Hero**
+**Hero: scroll-driven fly-by** (`assets/js/fly.js`, `assets/fly/`)
+- The footage starts on the architect's own visualisation of P6 (the one on the
+  "Vizualizácia" tile) and pushes in toward the planted balconies. The section
+  is pinned (`position: sticky`) and ~3.3 viewports tall; scrolling scrubs the
+  video, and three beats of copy cross-fade over it: the headline, "44 bytov",
+  "Komunitná terasa a fitness". Beat timing is `WINDOWS` in `fly.js`.
+- **How the footage was made.** The render was cropped to 16:9 and upscaled
+  2x in Magnific (ultra-denoiser), then animated from that start frame.
+  Three models were tried on the same frame: **Kling 3.0 won** (Kling 2.5
+  invented a drone flying past, Veo 3.1 let the building morph). The clip is
+  trimmed to 8.0 s, before the lens starts leaning wide-angle. Around 3,300
+  credits in total.
+- **Encoding.** 12 fps, `hqdn3d` temporal denoise (generative foliage shimmers
+  otherwise), H.264 with a keyframe every 6 frames so any seek decodes at most
+  five frames: `p6-fly-1600.mp4` 4.1 MB, `p6-fly-960.mp4` 1.6 MB. A WebP frame
+  sequence was tried and came to 7–12 MB. To re-encode from a new master:
+  `ffmpeg -i master.mp4 -t 8 -vf "fps=12,scale=1600:-2,hqdn3d=1.5:1.5:7:7"
+  -c:v libx264 -crf 22 -preset slow -g 6 -keyint_min 6 -sc_threshold 0
+  -pix_fmt yuv420p -an -movflags +faststart p6-fly-1600.mp4`
+  (and again at 960), then bump `ASSET_V`.
+- **The scrub** eases the playhead toward the scroll position and only issues a
+  new seek once the previous one has landed; seeking every frame queues seeks
+  and the picture falls far behind. Phones and small windows get the 960px file.
+- **Seeking needs HTTP byte ranges.** GitHub Pages serves them.
+  `python3 -m http.server` does **not**, and in Chrome the video then silently
+  stays on frame 0 however far you scroll. Test locally with a server that
+  answers `Range:` requests (e.g. `npx http-server`).
+- **Fallbacks.** Reduced motion, Save-Data or no JS: a normal one-screen hero
+  on the poster (the render itself), the video is never requested. A video
+  error keeps the poster and the beats.
+- **Phones:** the picture takes the top 56% of the pinned screen and the copy
+  sits below it on paper, so the text never fights the footage.
+
+**Building picker** (`#vyber-bytu`, right under the hero)
+- It used to be the hero. It moved into its own section because hotspots
+  cannot sit on a moving camera. It is framed centred (`data-frame="centred"`)
+  now that no headline needs the left-hand sky.
 - Hovering a unit in the facade lights it in its status colour, keeps its whole
   storey bright, dims the rest, and shows a card with type, area, orientation
   and price. Click opens the detail.
 - Hovering a **legend** entry (Voľný / Rezervovaný / Predaný) lights every unit
   with that status at once — the fastest read of what's still available.
-- A one-off sweep runs bottom-up on first load so the affordance needs no copy.
-- On scroll the copy lifts away and the building settles. (There is
-  deliberately **no** pointer parallax — drifting the facade under the cursor
-  read as wobble, not depth. The layer groups still exist in `mountFacade()`
-  if it is ever wanted back.)
+- A one-off sweep runs bottom-up the first time the picker scrolls into view,
+  so the affordance needs no copy.
+- There is deliberately **no** pointer parallax — drifting the facade under the
+  cursor read as wobble, not depth. The layer groups still exist in
+  `mountFacade()` if it is ever wanted back.
 - Counters count up when they come into view.
 
 **Maps** (`[data-citymap]`, `assets/js/map.js`)
@@ -280,9 +316,9 @@ checkbox, whose 292x44 label toggles it.
 
 Layout changes made for the phone:
 
-- **The hero scroll fade is desktop-only.** On a phone the copy sits *below*
-  the picture and is the main content, so fading it on scroll just greyed the
-  page out over the blue hero background.
+- **The fly-by puts its copy below the picture**, not over it. Over moving
+  footage on a 390px screen the text was either unreadable or needed a scrim
+  heavy enough to hide the building.
 - **The floor list is a horizontal chip rail** instead of eight stacked 52px
   rows — 420px of hero down to about 80.
 - **Available units are a snap rail.** Six stacked cards ran to ~1,800px; the
@@ -310,7 +346,7 @@ Phone-specific behaviour, all in the `MOBILE` blocks at the end of the CSS:
   full-width *Zobraziť detail* button. Hotspots are ~28x46px on a 375px screen
   because the building is simply wide relative to a phone; the sheet makes an
   imprecise tap cost one extra tap instead of a wrong page. The floor strip
-  under the hero is the precise route.
+  under the picker is the precise route.
 - **The floor plan switches to a portrait 420x520 box** so its labels render
   around 11px rather than 7px.
 - `--nav-h` drops to 64px.
@@ -322,8 +358,12 @@ Two CSS traps worth remembering if this gets extended:
    `el.hidden = true` — that bug was shipping duplicate cards under the table.
 2. `backdrop-filter` and `transform` both make an element a containing block
    for `position: fixed` descendants. Both had trapped a sheet inside a 68px
-   bar. `.filters` drops its blur on mobile and `.hero__vis` is only
-   transformed on desktop for this reason.
+   bar. `.filters` drops its blur on mobile for this reason.
+3. `aspect-ratio` plus `min-height` gets carried back across the ratio into a
+   minimum *width*. It pushed the phone layout 76px sideways once (`.photo`)
+   and 37px again (`.picker-stage`). Give narrow boxes an explicit height.
+4. `overflow: hidden` on any ancestor of the fly-by's `.fly__pin` breaks
+   `position: sticky`. Clip inside the pin, never around it.
 
 ## Design system
 
@@ -343,7 +383,8 @@ Tokens are at the top of `assets/css/site.css`.
 | `site.js` | shared helpers, navigation, drawer, forms |
 | `plan.js` | schematic floor plans — full on the detail page, compact thumbnails on cards |
 | `map.js` | schematic city map, five-minute city, business-zone route |
-| `building.js` | placeholder facade geometry, SVG generation, hero selector |
+| `building.js` | placeholder facade geometry, SVG generation, building picker |
+| `fly.js` | hero fly-by: scroll → video scrub, copy beats, progress bar |
 | `motion.js` | reveal, count-up, spotlight, chapter scroll-spy |
 | `list.js` | unit cards + the brief's six filters (also exports `unitCardHTML`) |
 | `detail.js` | single-unit page, plan, room table, sticky CTA |
@@ -366,6 +407,6 @@ gradients.
   it finds.
 - On phones the facade hotspots are ~28px tall — the building is simply wide
   relative to a phone screen. First tap previews, second tap opens, and the
-  floor strip under the hero plus the full list page are the reliable paths.
+  floor strip under the picker plus the full list page are the reliable paths.
 - Keyboard: every unit in the facade is tabbable with a visible focus ring.
 - `prefers-reduced-motion` is respected throughout.

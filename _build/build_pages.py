@@ -33,7 +33,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "49"
+ASSET_V = "50"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -335,51 +335,92 @@ def index_html():
     + nav("index.html", over=True)
     + f'''<main id="main">
 
-<!-- §1 Hero ============================================================ -->
-<section class="hero">
-  <div class="hero__vis" data-picker>
-    <svg data-facade preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"></svg>
-    <div class="hero__scrim"></div>
-    <div class="picker" role="group" aria-label="Interaktívny výber bytu z vizualizácie domu">
-      <svg data-hotspots preserveAspectRatio="xMidYMid meet"></svg>
+<!-- §1 Hero — scroll-driven fly-by of the real visualisation ============ -->
+<!-- Without JS, or with reduced motion, this is an ordinary one-screen hero on
+     the render's first frame. fly.js adds .is-live, which makes the section
+     tall and lets the scroll position drive the video. -->
+<section class="fly" data-fly aria-label="P6, Prievozská 6">
+  <div class="fly__pin">
+    <div class="fly__media">
+      <img class="fly__poster" src="assets/fly/poster-1600.webp?v={ASSET_V}"
+           srcset="assets/fly/poster-960.webp?v={ASSET_V} 960w, assets/fly/poster-1600.webp?v={ASSET_V} 1600w"
+           sizes="100vw" width="1600" height="900" fetchpriority="high"
+           alt="Vizualizácia bytového domu P6 na Prievozskej ulici: päťpodlažný dom so zelenými balkónmi a strešnou terasou">
+      <video class="fly__video" data-fly-video muted playsinline preload="none" aria-hidden="true" tabindex="-1"
+             data-src-sm="assets/fly/p6-fly-960.mp4?v={ASSET_V}" data-src-lg="assets/fly/p6-fly-1600.mp4?v={ASSET_V}"></video>
+      <div class="fly__scrim" aria-hidden="true"></div>
+      <span class="fly__label">Vizualizácia</span>
     </div>
-    <div class="tip" data-tip data-show="false" role="status" aria-live="polite"></div>
-    <div class="hero__top">
+
+    <div class="fly__copy">
       <div class="shell shell-wide">
-        <p class="hero__kicker"><span></span> Ilustračná vizualizácia · reálnu vizualizáciu P6 doplníme</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="hero__content">
-    <div class="shell shell-wide">
-      <h1 class="hero__title">Domov medzi<br>Miletičkou a <em>Downtownom</em></h1>
-      <p class="hero__sub">Mestské bývanie na Prievozskej 6. Trh, škola, práca, Nivy aj nové centrum Bratislavy v prirodzenom dosahu.</p>
-      <div class="hero__actions">
-        <a class="btn btn--primary" href="byty.html?status=dostupny">Pozrieť dostupné byty {svg("arrow")}</a>
-        <a class="btn btn--ghost" href="#lokalita">Objaviť lokalitu</a>
-      </div>
-
-      <div style="display:flex;flex-wrap:wrap;gap:14px 30px;align-items:center;margin-top:30px;max-width:660px">
-        <div class="legend">
-          <button type="button" class="legend__item" data-legend="dostupny"><span class="legend__dot legend__dot--ok"></span>Voľný</button>
-          <button type="button" class="legend__item" data-legend="rezervovany"><span class="legend__dot legend__dot--warn"></span>Rezervovaný</button>
-          <button type="button" class="legend__item" data-legend="predany"><span class="legend__dot legend__dot--off"></span>Predaný</button>
+        <div class="fly__beat is-on" data-beat="0">
+          <p class="hero__kicker"><span></span> Prievozská 6 · Bratislava-Ružinov</p>
+          <h1 class="hero__title">Domov medzi<br>Miletičkou a <em>Downtownom</em></h1>
+          <p class="hero__sub">Mestské bývanie na Prievozskej 6. Trh, škola, práca, Nivy aj nové centrum Bratislavy v prirodzenom dosahu.</p>
+          <div class="hero__actions">
+            <a class="btn btn--light" href="byty.html?status=dostupny">Pozrieť dostupné byty {svg("arrow")}</a>
+            <a class="btn btn--onink" href="#vyber-bytu">Vybrať byt v dome</a>
+          </div>
         </div>
-        <span class="picker__hint">{svg("cursor")} Vyberte byt priamo vo fasáde</span>
-      </div>
-
-      <div class="floorstrip-wrap" style="margin-top:26px">
-        <p class="eyebrow">Alebo podľa podlažia</p>
-        <div class="floorstrip" data-floorstrip></div>
+        <div class="fly__beat" data-beat="1">
+          <p class="eyebrow">Projekt</p>
+          <p class="fly__big">44 bytov</p>
+          <p class="fly__line">1- až 3-izbové, každý s vlastným balkónom.</p>
+        </div>
+        <div class="fly__beat" data-beat="2">
+          <p class="eyebrow">Pre obyvateľov</p>
+          <p class="fly__big">Komunitná terasa a fitness</p>
+          <div class="hero__actions">
+            <a class="btn btn--light" href="byty.html?status=dostupny">Pozrieť dostupné byty {svg("arrow")}</a>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <a class="hero__cue" href="#lokalita" aria-label="Prejsť na lokalitu">
-    <span class="hero__cue-line"></span>
-    <span>Posúvajte</span>
-  </a>
+    <div class="fly__progress" aria-hidden="true"><span data-fly-bar></span></div>
+    <a class="hero__cue fly__cue" href="#vyber-bytu" aria-label="Prejsť na výber bytu">
+      <span class="hero__cue-line"></span>
+      <span>Posúvajte</span>
+    </a>
+  </div>
+</section>
+
+<!-- §1b Apartment picker — the interactive schematic facade, moved out of the
+     hero: its hotspots are drawn on the illustration's geometry and cannot sit
+     on top of a moving camera. -->
+<section class="section picker-sec" id="vyber-bytu">
+  <div class="shell shell-wide">
+    <div class="picker-sec__head">
+      <div>
+        <p class="eyebrow">Výber bytu</p>
+        <h2>Vyberte si byt priamo v dome</h2>
+      </div>
+      <p class="picker-sec__note">Schéma domu. Prejdite myšou po podlažiach a kliknutím otvoríte detail bytu.</p>
+    </div>
+
+    <div class="picker-stage" data-picker data-frame="centred">
+      <svg data-facade preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"></svg>
+      <div class="picker" role="group" aria-label="Interaktívny výber bytu zo schémy domu">
+        <svg data-hotspots preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="tip" data-tip data-show="false" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="picker-sec__foot">
+      <div class="legend">
+        <button type="button" class="legend__item" data-legend="dostupny"><span class="legend__dot legend__dot--ok"></span>Voľný</button>
+        <button type="button" class="legend__item" data-legend="rezervovany"><span class="legend__dot legend__dot--warn"></span>Rezervovaný</button>
+        <button type="button" class="legend__item" data-legend="predany"><span class="legend__dot legend__dot--off"></span>Predaný</button>
+      </div>
+      <span class="picker__hint">{svg("cursor")} Vyberte byt priamo vo fasáde</span>
+    </div>
+
+    <div class="floorstrip-wrap" style="margin-top:26px">
+      <p class="eyebrow">Alebo podľa podlažia</p>
+      <div class="floorstrip" data-floorstrip></div>
+    </div>
+  </div>
 </section>
 <div data-nav-sentinel aria-hidden="true"></div>
 
@@ -604,8 +645,8 @@ def index_html():
       </div>
     </div>
     <div style="margin-top:clamp(30px,4vw,52px)">{photo("Vizualizácia P6", "Vizualizácia · s panorámou Downtownu", "photo--wide reveal", "cube",
-           src="assets/img/vizualizacia-p6.webp", credit=DEMO_IMG,
-           alt="Ilustračná vizualizácia päťpodlažného bytového domu s panorámou Downtownu v pozadí")}</div>
+           src="assets/img/vizualizacia-p6.webp", credit="Vizualizácia",
+           alt="Vizualizácia bytového domu P6 na Prievozskej ulici so zelenými balkónmi a strešnou terasou")}</div>
   </div>
 </section>
 
@@ -686,7 +727,7 @@ document.addEventListener('DOMContentLoaded', function () {
   wrap.innerHTML = picks.map(function (a) { return unitCardHTML(a); }).join('');
 });
 </script>
-''' + scripts("map.js", "building.js", "list.js"))
+''' + scripts("map.js", "building.js", "list.js", "fly.js"))
 
 # ---------------------------------------------------------------- byty
 
@@ -872,7 +913,7 @@ def galeria_html():
     ]
     g = "".join(
         f'<div class="{"gallery__wide" if c else ""}">'
-        f'{photo(t, "Fotografia bude doplnená", c or "", src=f"assets/img/{img}.webp", alt=t, credit=DEMO_IMG)}'
+        f'{photo(t, "Fotografia bude doplnená", c or "", src=f"assets/img/{img}.webp", alt=t, credit="Vizualizácia" if img == "vizualizacia-p6" else DEMO_IMG)}'
         f'</div>' for t, c, img in tiles)
     return (head(f"Galéria — {NAME}",
                  "Fotografie a vizualizácie: Miletička, biznis zóna, Nivy, cesta do školy, komunitná terasa a vizualizácia P6.",

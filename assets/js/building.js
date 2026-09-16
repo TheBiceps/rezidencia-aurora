@@ -373,10 +373,13 @@ function initPicker(root) {
   mountFacade(visEl);
   mountHotspots(hotEl);
 
+  /* In its own section the facade is framed centred. The off-centre framing was
+     only ever there to leave sky clear for the hero headline. */
+  const frameOpts = root.dataset.frame === 'centred' ? { centred: true } : undefined;
   const size = () => {
     const r = root.getBoundingClientRect();
-    frameViewBox(visEl, r.width, r.height);
-    frameViewBox(hotEl, r.width, r.height);
+    frameViewBox(visEl, r.width, r.height, frameOpts);
+    frameViewBox(hotEl, r.width, r.height, frameOpts);
   };
   size();
   if (window.ResizeObserver) new ResizeObserver(size).observe(root);
@@ -388,10 +391,20 @@ function initPicker(root) {
   const isTouch = window.matchMedia('(hover: none)').matches;
   const sheet = window.matchMedia('(max-width: 899px)');
 
-  /* one-off intro sweep so the affordance is obvious without instructions */
+  /* one-off intro sweep so the affordance is obvious without instructions.
+     Run it when the picker is actually seen: below the hero it is off-screen
+     at load, and a sweep nobody watches teaches nothing. */
   if (!calm) {
-    root.classList.add('is-intro');
-    setTimeout(() => root.classList.remove('is-intro'), 3400);
+    const sweep = () => {
+      root.classList.add('is-intro');
+      setTimeout(() => root.classList.remove('is-intro'), 3400);
+    };
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(([e]) => {
+        if (e.isIntersecting) { io.disconnect(); sweep(); }
+      }, { threshold: 0.45 });
+      io.observe(root);
+    } else sweep();
   }
 
   function clear() {
