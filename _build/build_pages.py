@@ -33,7 +33,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "50"
+ASSET_V = "51"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -339,15 +339,16 @@ def index_html():
 <!-- Without JS, or with reduced motion, this is an ordinary one-screen hero on
      the render's first frame. fly.js adds .is-live, which makes the section
      tall and lets the scroll position drive the video. -->
-<section class="fly" data-fly aria-label="P6, Prievozská 6">
+<section class="fly" data-fly aria-label="P6, Prievozská 6"
+         data-fly-wide="assets/fly/p6-fly-wide" data-fly-tall="assets/fly/p6-fly-tall" data-fly-v="{ASSET_V}">
   <div class="fly__pin">
     <div class="fly__media">
       <img class="fly__poster" src="assets/fly/poster-1600.webp?v={ASSET_V}"
            srcset="assets/fly/poster-960.webp?v={ASSET_V} 960w, assets/fly/poster-1600.webp?v={ASSET_V} 1600w"
            sizes="100vw" width="1600" height="900" fetchpriority="high"
            alt="Vizualizácia bytového domu P6 na Prievozskej ulici: päťpodlažný dom so zelenými balkónmi a strešnou terasou">
-      <video class="fly__video" data-fly-video muted playsinline preload="none" aria-hidden="true" tabindex="-1"
-             data-src-sm="assets/fly/p6-fly-960.mp4?v={ASSET_V}" data-src-lg="assets/fly/p6-fly-1600.mp4?v={ASSET_V}"></video>
+      <canvas class="fly__canvas" data-fly-canvas aria-hidden="true"></canvas>
+      <video class="fly__video" data-fly-video muted playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
       <div class="fly__scrim" aria-hidden="true"></div>
       <span class="fly__label">Vizualizácia</span>
     </div>

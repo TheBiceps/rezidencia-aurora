@@ -1922,13 +1922,16 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
 .fly.is-live .fly__pin { position: sticky; top: 0; }
 
 .fly__media { position: absolute; inset: 0; }
-.fly__poster, .fly__video {
+.fly__poster, .fly__video, .fly__canvas {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; object-position: 50% 42%; display: block;
 }
-/* frame 0 of the video IS the poster, so this cross-fade is invisible */
-.fly__video { opacity: 0; transition: opacity .35s ease; }
-.fly.is-ready .fly__video { opacity: 1; }
+/* frame 0 of the flight IS the poster, so this cross-fade is invisible. The
+   canvas is the normal path; the <video> only shows when fly.js fell back. */
+.fly__video, .fly__canvas { opacity: 0; transition: opacity .35s ease; }
+.fly.is-ready:not(.is-video) .fly__canvas { opacity: 1; }
+.fly.is-video .fly__canvas { display: none; }
+.fly.is-video.is-ready .fly__video { opacity: 1; }
 
 /* dark along the bottom-left where the copy sits; a pale band at the very top
    keeps the ink navigation legible over the sky */
@@ -2002,7 +2005,7 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
   .fly.is-live { height: 260svh; }
   .fly__pin { min-height: 0; display: flex; flex-direction: column; }
   .fly__media { position: relative; inset: auto; flex: none; height: 56svh; }
-  .fly__poster, .fly__video { object-position: 50% 48%; }
+  .fly__poster, .fly__video { object-position: 50% 48%; }   /* fly.js FOCUS_Y matches */
   .fly__scrim { background: linear-gradient(180deg, rgba(247,244,239,.55) 0%, rgba(247,244,239,0) 20%); }
   .fly__label { top: auto; bottom: 12px; right: 14px; }
   .fly__copy { position: relative; flex: 1; padding: clamp(20px, 5.5vw, 30px) 0 22px; background: var(--paper); }

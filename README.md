@@ -127,33 +127,48 @@ Nothing here is decorative-only; each piece is doing a job.
 **Hero: scroll-driven fly-by** (`assets/js/fly.js`, `assets/fly/`)
 - The footage starts on the architect's own visualisation of P6 (the one on the
   "Vizualizácia" tile) and pushes in toward the planted balconies. The section
-  is pinned (`position: sticky`) and ~3.3 viewports tall; scrolling scrubs the
-  video, and three beats of copy cross-fade over it: the headline, "44 bytov",
+  is pinned (`position: sticky`) and ~3.3 viewports tall; scrolling moves the
+  camera, and three beats of copy cross-fade over it: the headline, "44 bytov",
   "Komunitná terasa a fitness". Beat timing is `WINDOWS` in `fly.js`.
 - **How the footage was made.** The render was cropped to 16:9 and upscaled
   2x in Magnific (ultra-denoiser), then animated from that start frame.
   Three models were tried on the same frame: **Kling 3.0 won** (Kling 2.5
-  invented a drone flying past, Veo 3.1 let the building morph). The clip is
-  trimmed to 8.0 s, before the lens starts leaning wide-angle. Around 3,300
-  credits in total.
-- **Encoding.** 12 fps, `hqdn3d` temporal denoise (generative foliage shimmers
-  otherwise), H.264 with a keyframe every 6 frames so any seek decodes at most
-  five frames: `p6-fly-1600.mp4` 4.1 MB, `p6-fly-960.mp4` 1.6 MB. A WebP frame
-  sequence was tried and came to 7–12 MB. To re-encode from a new master:
-  `ffmpeg -i master.mp4 -t 8 -vf "fps=12,scale=1600:-2,hqdn3d=1.5:1.5:7:7"
-  -c:v libx264 -crf 22 -preset slow -g 6 -keyint_min 6 -sc_threshold 0
-  -pix_fmt yuv420p -an -movflags +faststart p6-fly-1600.mp4`
-  (and again at 960), then bump `ASSET_V`.
-- **The scrub** eases the playhead toward the scroll position and only issues a
-  new seek once the previous one has landed; seeking every frame queues seeks
-  and the picture falls far behind. Phones and small windows get the 960px file.
-- **Seeking needs HTTP byte ranges.** GitHub Pages serves them.
-  `python3 -m http.server` does **not**, and in Chrome the video then silently
-  stays on frame 0 however far you scroll. Test locally with a server that
-  answers `Range:` requests (e.g. `npx http-server`).
-- **Fallbacks.** Reduced motion, Save-Data or no JS: a normal one-screen hero
-  on the poster (the render itself), the video is never requested. A video
-  error keeps the poster and the beats.
+  invented a drone flying past, Veo 3.1 let the building morph). Only the
+  first 8.0 s are used; after that the lens starts leaning wide-angle. Around
+  3,300 credits in total.
+- **It is not a seeked `<video>`.** That was the first version, and it moved in
+  visible steps: seeks are asynchronous and each must land before the next, so
+  on a real scroll gesture the picture changed 25–37 times a second and trailed
+  the page. Now `fly.js` fetches the MP4 whole, decodes the frames itself with
+  **WebCodecs**, and paints them into a canvas on every display refresh,
+  blending the two frames either side of the exact scroll position. When the
+  scroll rests it eases onto a whole frame, so a still never shows two frames
+  at once.
+- **Measured** (headless Chrome, `Input.synthesizeScrollGesture`): the picture
+  changes on every display refresh while the page moves, scrolling down or up,
+  at 600 through 3,000 px/s, on desktop and at 390px, with zero frames drawn
+  before they were decoded. A notched mouse wheel (100px jumps) still glides.
+- **Memory.** All 192 frames as bitmaps would be over a gigabyte at 1600px, so
+  frames are decoded a keyframe group (12) at a time and only the group under
+  the playhead and its two neighbours are kept. Off screen for 2 s, it drops
+  to one group.
+- **Assets.** `_build/fly/build_fly.py <master.mp4>` makes everything: 24 fps,
+  `hqdn3d` temporal denoise (generated foliage shimmers otherwise), H.264 with
+  no B-frames and a keyframe every 12 frames.
+  `p6-fly-wide.mp4` 1600x900, 3.3 MB, for desktop and tablets;
+  `p6-fly-tall.mp4` 720x900, 1.8 MB, the centre 4:5 of the frame for phones.
+  Beside each is a JSON index with the decoder config (codec string + avcC)
+  and the byte range of every frame. WebP frame sequences were measured at
+  16–24 MB for the same 192 frames, which is why this is not an image
+  sequence. After re-running it, bump `ASSET_V`.
+- **Fallbacks.** No WebCodecs, an unsupported codec, a decoder error, or no
+  first frame within 8 s: the same MP4 goes into the `<video>` and is seeked
+  the old way (`.is-video`). Reduced motion, Save-Data or no JS: a normal
+  one-screen hero on the poster (the render itself), and the footage is never
+  requested.
+- **Local testing needs HTTP byte ranges** for the `<video>` fallback.
+  `python3 -m http.server` does not serve them, and the fallback then silently
+  stays on frame 0. GitHub Pages does.
 - **Phones:** the picture takes the top 56% of the pinned screen and the copy
   sits below it on paper, so the text never fights the footage.
 
@@ -384,7 +399,7 @@ Tokens are at the top of `assets/css/site.css`.
 | `plan.js` | schematic floor plans — full on the detail page, compact thumbnails on cards |
 | `map.js` | schematic city map, five-minute city, business-zone route |
 | `building.js` | placeholder facade geometry, SVG generation, building picker |
-| `fly.js` | hero fly-by: scroll → video scrub, copy beats, progress bar |
+| `fly.js` | hero fly-by: WebCodecs → canvas, scroll-linked, copy beats, progress bar |
 | `motion.js` | reveal, count-up, spotlight, chapter scroll-spy |
 | `list.js` | unit cards + the brief's six filters (also exports `unitCardHTML`) |
 | `detail.js` | single-unit page, plan, room table, sticky CTA |
