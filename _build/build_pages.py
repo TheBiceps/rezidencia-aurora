@@ -35,7 +35,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "53"
+ASSET_V = "54"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -414,7 +414,7 @@ def index_html():
         <p class="eyebrow">Výber bytu</p>
         <h2>Vyberte si byt priamo v dome</h2>
       </div>
-      <p class="picker-sec__note">Prejdite myšou po podlažiach domu a uvidíte, koľko bytov je na nich voľných. Kliknutím zobrazíte byty na podlaží.</p>
+      <p class="picker-sec__note">Prejdite myšou po podlažiach domu a uvidíte, koľko bytov je na nich voľných. Kliknutím otvoríte pôdorys podlažia a vyberiete si byt.</p>
     </div>
 
     <div class="bldg" data-bldg>
@@ -438,7 +438,7 @@ def index_html():
         <span class="legend__item legend__item--static"><span class="legend__dot legend__dot--warn"></span>Rezervovaný</span>
         <span class="legend__item legend__item--static"><span class="legend__dot legend__dot--off"></span>Predaný</span>
       </div>
-      <span class="picker__hint">{svg("cursor")} Vyberte podlažie priamo na dome</span>
+      <span class="picker__hint">{svg("cursor")} <span data-bldg-hint>Vyberte podlažie priamo na dome</span></span>
     </div>
 
     <div class="floorstrip-wrap" style="margin-top:26px">
@@ -752,7 +752,7 @@ document.addEventListener('DOMContentLoaded', function () {
   wrap.innerHTML = picks.map(function (a) { return unitCardHTML(a); }).join('');
 });
 </script>
-''' + scripts("map.js", "floors.js", "list.js", "fly.js"))
+''' + scripts("map.js", "floorplan.js", "floors.js", "list.js", "fly.js"))
 
 # ---------------------------------------------------------------- byty
 

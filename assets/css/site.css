@@ -2039,12 +2039,57 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
 }
 @media (prefers-reduced-motion: reduce) { .bldg.is-intro .bldg__floor > rect { animation: none; } }
 
+/* --- inside a storey: the plan the band opened into ----------------------- */
+.fview {
+  position: absolute; inset: 0; z-index: 3;
+  /* minmax(0, 1fr) columns: a grid item will not shrink below its content by
+     default, and on phones that content is the plan's 660px pan rail */
+  display: grid; grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr);
+  gap: clamp(10px, 1.3vw, 18px);
+  padding: clamp(14px, 1.6vw, 22px) clamp(14px, 2vw, 28px) clamp(14px, 1.8vw, 24px);
+  background: var(--paper-2);
+}
+.fview__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; }
+.fview__back {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 16px 0 12px;
+  background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-sm);
+  font: inherit; font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 500;
+  cursor: pointer; transition: background .2s ease, color .2s ease, border-color .2s ease;
+}
+.fview__back:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.fview__back svg { width: 16px; height: 16px; }
+.fview__title { display: flex; align-items: baseline; gap: 12px; margin-right: auto; }
+.fview__no { font-family: var(--f-display); font-size: clamp(1.6rem, 2.4vw, 2.2rem); line-height: 1; }
+.fview__meta { font-size: .8rem; color: var(--text-muted); }
+.fview__floors { display: flex; gap: 6px; }
+.fview__chip {
+  min-height: 36px; padding: 0 13px; border-radius: 100px;
+  background: transparent; color: var(--text-muted); border: 1px solid var(--line);
+  font: inherit; font-size: .7rem; letter-spacing: .1em; font-weight: 500; cursor: pointer;
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
+}
+.fview__chip:hover { color: var(--ink); border-color: var(--copper); }
+.fview__chip.is-on { background: var(--copper); border-color: var(--copper); color: var(--paper); }
+/* the plan is as large as the stage allows at its own ratio (set per storey by
+   floorplan.js as --plan-ratio); 40px is its caption strip */
+.fview__stage { min-height: 0; container-type: size; display: grid; place-items: center; }
+.fview__stage .fplan { width: min(100cqw, (100cqh - 40px) * var(--plan-ratio, 2.3)); background: var(--paper); }
+.fview .fplan__unit.is-hot polygon { fill: rgba(176, 124, 68, .28); stroke: var(--copper); }
+.fview .fplan__unit.is-hot .fplan__tag circle { fill: var(--copper); stroke: var(--copper); }
+.fview .fplan__unit.is-hot .fplan__tag text { fill: var(--paper); }
+.bldg.is-floor .bldg__label { display: none; }
+/* the picture fades toward paper, not toward the stage's sky-blue ground */
+.bldg.is-floor { background: var(--paper-2); }
+
 /* the floor card */
 @media (min-width: 900px) {
-  /* placed by floors.js beside the storey, so no centring translate */
-  .tip--floor { width: 250px; transform: translateY(6px) scale(.97); }
-  .tip--floor[data-show="true"] { transform: none; }
+  /* placed by floors.js beside the storey or above the flat, so no centring translate */
+  .tip--floor, .tip--unit { width: 250px; transform: translateY(6px) scale(.97); }
+  .tip--floor[data-show="true"], .tip--unit[data-show="true"] { transform: none; }
+  .tip--unit { z-index: 4; }
 }
+.tip--unit .tip__head { align-items: center; }
+.tip--unit .tip__cta { color: var(--copper); }
 .tip--floor .tip__head { align-items: baseline; justify-content: flex-start; gap: 10px; margin-bottom: 12px; }
 .tip--floor .tip__type { margin: 0; }
 .tip__row--total { padding-bottom: 8px; margin-bottom: 2px; border-bottom: 1px solid var(--line-soft); }
@@ -2068,5 +2113,19 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
      37px sideways on a 390px phone */
   /* the building framed tighter (floors.js DOM_VIEW.narrow), same ratio as that crop */
   .bldg { aspect-ratio: 1660 / 900; }
+  /* inside a storey the plan needs more height than the picture had: the stage
+     lets go of its ratio and the plan pans sideways in its rail */
+  .bldg.is-floor { aspect-ratio: auto; overflow: visible; background: transparent; border-radius: 0; }
+  .bldg.is-floor .bldg__svg { display: none; }
+  .fview { position: relative; inset: auto; padding: 0; background: transparent; gap: 14px; }
+  .fview__bar { gap: 12px 14px; }
+  .fview__back { min-height: 44px; }
+  .fview__floors { width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .fview__floors::-webkit-scrollbar { display: none; }
+  .fview__chip { min-height: 44px; flex: 1 0 auto; }
+  /* place-items has to go too: Chrome now honours justify-self on plain blocks,
+     and centring shrink-wraps the plan to its 660px rail, off both edges */
+  .fview__stage { container-type: normal; display: block; place-items: normal; }
+  .fview__stage .fplan { width: auto; }
   .bldg__tag { display: none; }
 }

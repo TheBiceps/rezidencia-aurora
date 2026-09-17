@@ -180,9 +180,32 @@ Nothing here is decorative-only; each piece is doing a job.
 - Every storey is a hover band. Hover paints it in brand copper (the same
   colour as the storey plans), the other storeys step back slightly, a `3. NP`
   tag appears on the facade, and a card shows **Bytov na podlaží**, **Voľné**,
-  **Rezervované**, **Predané** with a status bar. Click opens
-  `byty.html?floor=N`. Counts are read from `data.js`, so a status change there
-  updates the card.
+  **Rezervované**, **Predané** with a status bar. Counts are read from
+  `data.js`, so a status change there updates the card.
+- **Click a storey and the page dives into it.** Two beats: the camera pushes
+  in on the copper band until it nearly spans the stage, then that band opens
+  out (a `clip-path` from the zoomed band to the full stage) into the
+  architect's plan of the storey while the picture fades to paper. Closing
+  runs it backwards. Web Animations API, ~1.2 s; reduced motion swaps
+  instantly.
+- **Inside the storey** (`.fview`): *Späť na dom*, the storey's name and free
+  count, and chips to jump between 1.–5. NP without leaving. Every flat lights
+  copper under the pointer with a card (id, status, type, interiér / balkón /
+  spolu, price); a click opens `byt.html?id=…`. The plan and its outlines are
+  the same ones "Poloha v dome" uses: `floorPlanHTML()` in `floorplan.js`.
+- The storey has its own history entry, `#podlazie-3`: the browser's back
+  button returns to the building, and a link to that address opens the storey
+  directly. A new-tab click on a storey still gets the plain list,
+  `byty.html?floor=N`.
+- Phones: tapping a storey opens its card; *Pôdorys N. NP* pushes in on the
+  band, then the plan takes the page below the chips and pans sideways in its
+  rail. Tapping a flat opens a bottom sheet with *Detail bytu*.
+- Two traps met on the way: a delayed animation holds its first keyframe, so
+  the view must also be `opacity: 0` then, or the band shows as a blank slab
+  on the house; and a `clip-path` left on the view clips the fixed-position
+  card, so every animation is cancelled once it has run. On phones the stage
+  must not keep `place-items: center`: Chrome now applies `justify-self` to
+  plain blocks and shrink-wraps the plan to its 660px rail.
 - The bands are measured on the 2560x1440 image against the bottom edge of
   each balcony slab (`DOM_FLOORS`, `DOM_X`). Ground floor is 1. NP; the roof
   terrace is not a storey. **A different picture means re-measuring them.**
@@ -191,8 +214,8 @@ Nothing here is decorative-only; each piece is doing a job.
   (`DOM_VIEW.narrow`), which makes a storey a ~32px tall, full-width band.
 - Desktop: the card sits in the street to the left of the building, level with
   the storey, and falls back to over the facade when there is no room. Phones:
-  first tap opens a bottom sheet with *Zobraziť byty na N. NP*; a second tap
-  on the same storey or the button goes on. (The tap state is tracked apart
+  first tap opens a bottom sheet; a second tap on the same storey or its
+  button opens the storey. (The tap state is tracked apart
   from focus: a tap focuses the link before it clicks.)
 - A one-off sweep lights each storey bottom to top the first time the section
   is seen. The picture loads on approach, at the smallest size that is sharp.
@@ -432,12 +455,12 @@ Tokens are at the top of `assets/css/site.css`.
 | `site.js` | shared helpers, navigation, drawer, forms |
 | `plan.js` | schematic floor plans — full on the detail page, compact thumbnails on cards |
 | `map.js` | schematic city map, five-minute city, business-zone route |
-| `floors.js` | "Vyberte si byt priamo v dome": storey bands on the visualisation, floor card, floor strip |
+| `floors.js` | "Vyberte si byt priamo v dome": storey bands on the visualisation, floor card, dive into the storey plan, flat cards, floor strip |
 | `fly.js` | hero fly-by: WebCodecs → canvas, scroll-linked, copy beats, progress bar |
 | `motion.js` | reveal, count-up, spotlight, chapter scroll-spy |
 | `list.js` | unit cards + the brief's six filters (also exports `unitCardHTML`) |
 | `detail.js` | single-unit page, plan, room table, sticky CTA |
-| `floorplan.js` | "Poloha v dome" — clickable storey plan, outlines + letter→flat mapping |
+| `floorplan.js` | storey plans: outlines + letter→flat mapping, `floorPlanHTML()` for the floor view, `mountFloorPlan()` for "Poloha v dome" |
 
 Load order matters: `data.js → site.js → motion.js → plan.js → (map.js | floors.js | list.js | detail.js)`.
 

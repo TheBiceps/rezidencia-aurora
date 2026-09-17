@@ -72,20 +72,20 @@ function polyCentre(pts) {
 }
 
 /**
- * Render the storey plan into `host` with `active` (an apartment id like "3.H")
- * highlighted. Every other apartment on the same storey becomes a link.
+ * The storey plan for `floor` as markup: the architect's drawing with every
+ * apartment on that storey as a hit region linking to its page.
+ *
+ *   activeId   the flat being viewed: marked, and not a link (detail page)
+ *   titles     native tooltips on each flat; off where a card does that job
+ *   lazy       defer the drawing until it nears the viewport
  */
-function mountFloorPlan(host, active) {
-  if (!host) return;
-  const a = APARTMENTS.find(u => u.id === active);
-  if (!a) return;
-
-  const key = floorKey(a.floor);
+function floorPlanHTML(floor, { activeId = null, titles = true, lazy = false } = {}) {
+  const key = floorKey(floor);
   const img = FLOOR_IMG[key];
   const shapes = FLOOR_SHAPES[key];
-  if (!img || !shapes) return;
+  if (!img || !shapes) return '';
 
-  const onFloor = APARTMENTS.filter(u => u.floor === a.floor);
+  const onFloor = APARTMENTS.filter(u => u.floor === floor);
 
   /* The map is stretched over the image with preserveAspectRatio="none", so one
      x unit is (img.w / img.h) times wider on screen than one y unit — 2.29x on
@@ -98,7 +98,7 @@ function mountFloorPlan(host, active) {
   const cell = u => {
     const pts = shapes[u.letter];
     if (!pts) return '';
-    const on = u.id === a.id;
+    const on = u.id === activeId;
     const [cx, cy] = polyCentre(pts);
     const title = `Byt ${u.id} · ${u.type} · ${fmtArea(u.area)} m²`
                 + (on ? ' · tento byt' : ` · ${STATUS_LABEL[u.status]}`);
@@ -108,7 +108,7 @@ function mountFloorPlan(host, active) {
     return `<${tag}${href} class="fplan__unit${on ? ' is-active' : ''}"
               data-status="${u.status}" data-id="${u.id}"
               ${on ? 'aria-current="page"' : ''} aria-label="${title}">
-              <title>${title}</title>
+              ${titles ? `<title>${title}</title>` : ''}
               <polygon points="${pts}"/>
               <g class="fplan__tag" transform="translate(${cx} ${cy}) scale(${unstretch} 1)">
                 <circle r="3.6"/>
@@ -117,23 +117,37 @@ function mountFloorPlan(host, active) {
             </${tag}>`;
   };
 
+  const alt = activeId
+    ? `Pôdorys ${floor}. nadzemného podlažia, byt ${activeId} je zvýraznený`
+    : `Pôdorys ${floor}. nadzemného podlažia`;
+
   /* the overlay is positioned against __frame, not against the figure: the
      figure also holds the caption, and stretching the map over that would
      shear every outline downwards */
-  host.innerHTML = `
-    <figure class="fplan">
+  return `
+    <figure class="fplan" style="--plan-ratio:${(img.w / img.h).toFixed(4)}">
       <div class="fplan__scroll">
        <div class="fplan__frame">
         <img class="fplan__img" src="${img.src}" width="${img.w}" height="${img.h}"
-             alt="Pôdorys ${a.floor}. nadzemného podlažia, byt ${a.id} je zvýraznený"
-             loading="lazy" decoding="async">
+             alt="${alt}"${lazy ? ' loading="lazy"' : ''} decoding="async">
         <svg class="fplan__map" viewBox="0 0 100 100" preserveAspectRatio="none"
-             role="group" aria-label="Byty na ${a.floor}. nadzemnom podlaží">
+             role="group" aria-label="Byty na ${floor}. nadzemnom podlaží">
           ${onFloor.map(cell).join('')}
         </svg>
        </div>
       </div>
-      <figcaption class="fplan__cap">${img.label}${a.floor === 1
+      <figcaption class="fplan__cap">${img.label}${floor === 1
         ? '' : ' · pôdorys je zhodný pre 2.–5. NP'}</figcaption>
     </figure>`;
+}
+
+/**
+ * Render the storey plan into `host` with `active` (an apartment id like "3.H")
+ * highlighted. Every other apartment on the same storey becomes a link.
+ */
+function mountFloorPlan(host, active) {
+  if (!host) return;
+  const a = APARTMENTS.find(u => u.id === active);
+  if (!a) return;
+  host.innerHTML = floorPlanHTML(a.floor, { activeId: a.id, lazy: true });
 }
