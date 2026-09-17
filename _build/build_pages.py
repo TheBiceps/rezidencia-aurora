@@ -16,6 +16,7 @@
 # ===========================================================================
 import json
 import os
+import re
 OUT = "rezidencia"
 
 SITE = "https://prievozska6.sk"          # placeholder domain — confirm with client
@@ -34,7 +35,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "52"
+ASSET_V = "53"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -74,6 +75,22 @@ I = {
  "road": '<path d="M4 21 9 3h6l5 18M12 6v3M12 12v3M12 18v3"/>',
  "sun": '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
 }
+
+# The project logo exactly as the client delivered it (assets/brand/P6_logo.svg:
+# white on transparent, with 100 units of empty margin all round). It is inlined
+# rather than linked so it takes the text colour of wherever it sits — ink in
+# the bar, paper in the footer — and the viewBox crops that margin off, which
+# is the mark's measured extent (100,100 → 778,572).
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "brand", "P6_logo.svg"),
+          encoding="utf-8") as _f:
+    LOGO_PATHS = re.findall(r' d="([^"]+)"', _f.read())
+LOGO_VIEWBOX = "100 100 678 472"
+
+def logo(cls="logo", label=None, fill="currentColor"):
+    a11y = f'role="img" aria-label="{label}"' if label else 'aria-hidden="true"'
+    paths = "".join(f'<path d="{d}"/>' for d in LOGO_PATHS)
+    return (f'<svg class="{cls}" viewBox="{LOGO_VIEWBOX}" fill="{fill}" {a11y} focusable="false">'
+            f'{paths}</svg>')
 
 def svg(key, cls="", extra=""):
     c = f'class="{cls}" ' if cls else ""
@@ -124,7 +141,7 @@ def nav(page, over=False):
     return f'''<header class="nav {"nav--over" if over else "nav--solid"}" data-nav="{"over" if over else "solid"}">
   <div class="nav__inner">
     <a class="brand" href="index.html" aria-label="{NAME} — domov">
-      <span class="brand__mark">P6</span>
+      <span class="brand__mark">{logo("brand__logo")}</span>
       <span class="brand__sub">Prievozská 6</span>
     </a>
     <nav class="nav__links" aria-label="Hlavná navigácia">{links}</nav>
@@ -138,7 +155,7 @@ def nav(page, over=False):
 
 <div class="drawer" id="drawer" data-drawer data-open="false" aria-hidden="true">
   <div class="drawer__top">
-    <a class="brand" href="index.html"><span class="brand__mark">P6</span><span class="brand__sub">Prievozská 6</span></a>
+    <a class="brand" href="index.html" aria-label="{NAME} — domov"><span class="brand__mark">{logo("brand__logo")}</span><span class="brand__sub">Prievozská 6</span></a>
     <button class="drawer__close" type="button" data-drawer-close aria-label="Zavrieť menu">{svg("x")}</button>
   </div>
   <nav class="drawer__links" aria-label="Mobilná navigácia">{dlinks}</nav>
@@ -153,7 +170,7 @@ FOOT = f'''<footer class="foot">
   <div class="shell shell-wide">
     <div class="foot__grid">
       <div>
-        <div class="foot__brand">P6</div>
+        <div class="foot__brand">{logo("foot__logo", NAME)}</div>
         <p style="color:var(--text-inv-muted);max-width:38ch;font-size:.95rem">
           Mestské bývanie na Prievozskej 6. Miletička, škola, biznis zóna, Nivy aj nové centrum Bratislavy v prirodzenom dosahu.
         </p>
@@ -916,10 +933,10 @@ def karta_html():
     display: flex; flex-direction: column; overflow: hidden; break-after: page; }}
   .sheet:last-child {{ break-after: auto; }}
 
-  .k-head {{ display: flex; align-items: baseline; justify-content: space-between;
+  .k-head {{ display: flex; align-items: center; justify-content: space-between;
     padding-bottom: 4.5mm; border-bottom: .25mm solid var(--line); }}
-  .k-brand {{ display: flex; align-items: baseline; gap: 3.5mm; }}
-  .k-brand b {{ font-family: var(--f-display); font-weight: 400; font-size: 19pt; line-height: 1; }}
+  .k-brand {{ display: flex; align-items: center; gap: 4mm; }}
+  .k-logo {{ height: 7mm; width: auto; display: block; color: var(--ink); }}
   .k-brand span, .k-doc {{ font-size: 6.4pt; letter-spacing: .26em; text-transform: uppercase; color: var(--text-muted); }}
   .k-doc {{ color: var(--sand-ink); font-weight: 500; }}
 
@@ -1000,7 +1017,7 @@ def karta_html():
 
   const today = new Date().toLocaleDateString('sk-SK');
   const head = `<header class="k-head">
-      <div class="k-brand"><b>P6</b><span>Prievozská 6 · Bratislava-Ružinov</span></div>
+      <div class="k-brand">{logo("k-logo", "P6")}<span>Prievozská 6 · Bratislava-Ružinov</span></div>
       <div class="k-doc">Karta bytu ${{a.id}}</div>
     </header>`;
   const foot = n => `<footer class="k-foot">
@@ -1259,12 +1276,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 # ---------------------------------------------------------------- static
 
-FAVICON = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="8" fill="#14120F"/>
-  <text x="32" y="41" text-anchor="middle" font-family="Georgia,serif" font-size="30" fill="#F7F4EF">P6</text>
-  <circle cx="50" cy="16" r="5" fill="#B87333"/>
-</svg>
-'''
+# the logo in paper on an ink tile; 44 wide leaves the mark legible at 16px
+FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
+           '<rect width="64" height="64" rx="10" fill="#14120F"/>'
+           f'<svg x="10" y="16.7" width="44" height="30.6" viewBox="{LOGO_VIEWBOX}" fill="#F7F4EF">'
+           + "".join(f'<path d="{d}"/>' for d in LOGO_PATHS) + '</svg></svg>\n')
 
 ROBOTS = ("User-agent: *\nDisallow: /\n" if PREVIEW else
           f"User-agent: *\nAllow: /\nDisallow: /byt.html\n\nSitemap: {SITE}/sitemap.xml\n")

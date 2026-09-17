@@ -409,6 +409,15 @@ Two CSS traps worth remembering if this gets extended:
 
 Tokens are at the top of `assets/css/site.css`.
 
+- **Logo:** `assets/brand/P6_logo.svg`, exactly as delivered by the client
+  (white on transparent, 878x672 with a 100-unit empty margin). The build
+  inlines its paths (`logo()` in `build_pages.py`) with the margin cropped off
+  (`viewBox="100 100 678 472"`) and `fill="currentColor"`, so one file serves
+  the ink nav bar, the paper-on-ink footer and mobile menu, the favicon (paper
+  mark on an ink tile) and the header of every apartment PDF. Replace that
+  file and rebuild; if the new artwork has a different extent, re-measure the
+  viewBox. The PDFs then need regenerating too.
+
 - Ink `#14120F`, paper `#F7F4EF`, sand accent `#A98C64`
 - Status: available `#4E7355`, reserved `#9A7226`, sold `#8A8079`
 - Display type Newsreader (self-hosted in `assets/fonts/`, `size-adjust: 92%` so it sits on

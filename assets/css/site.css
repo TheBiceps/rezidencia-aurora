@@ -260,8 +260,11 @@ p { margin: 0 0 1.1em; max-width: 68ch; }
 .nav__inner { width: 100%; max-width: 1680px; margin-inline: auto; padding-inline: clamp(20px, 5vw, 56px);
   display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 
-.brand { display: flex; align-items: baseline; gap: 11px; text-decoration: none; color: inherit; }
-.brand__mark { font-family: var(--f-display); font-size: 1.55rem; letter-spacing: .04em; line-height: 1; }
+.brand { display: flex; align-items: center; gap: 13px; text-decoration: none; color: inherit; }
+.brand__mark { display: inline-flex; line-height: 0; }
+/* the project logo (assets/brand/P6_logo.svg), inlined in currentColor */
+.brand__logo { display: block; height: 28px; width: auto; }
+@media (max-width: 899px) { .brand__logo { height: 24px; } }
 .brand__sub { font-size: .6rem; letter-spacing: .3em; text-transform: uppercase; opacity: .6; }
 
 .nav__links { display: none; gap: 34px; align-items: center; }
@@ -828,7 +831,8 @@ table.rooms tbody.rooms__sum tr:hover { background: none; }
 .foot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .foot a { text-decoration: none; color: var(--text-inv-muted); transition: color .2s ease; font-size: .92rem; }
 .foot a:hover { color: var(--text-inv); }
-.foot__brand { font-family: var(--f-display); font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 300; margin-bottom: 12px; }
+.foot__brand { margin-bottom: 18px; line-height: 0; }
+.foot__logo { display: block; height: clamp(44px, 5vw, 60px); width: auto; }
 /* The address used to be a .badge pill. Badges are styled for light sections,
    so on the ink footer it came out as dark grey on near-black, and the pill's
    padding set it 15px in from the paragraph above. It is an address, not a
@@ -1469,7 +1473,8 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
   /* --- footer ------------------------------------------------------------- */
   .foot { padding-block: 48px 24px; }
   .foot__grid { gap: 30px; }
-  .foot__brand { font-size: 1.75rem; margin-bottom: 8px; }
+  .foot__brand { margin-bottom: 12px; }
+  .foot__logo { height: 40px; }
   .foot h4 { margin-bottom: 12px; }
   .foot__bottom { margin-top: 34px; padding-top: 18px; font-size: .72rem; gap: 8px; }
 }
