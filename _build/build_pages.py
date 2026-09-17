@@ -14,6 +14,7 @@
 #  Page order and copy follow the client brief P6_zmeny.docx section by
 #  section; the section numbers in the comments below are the brief's.
 # ===========================================================================
+import json
 import os
 OUT = "rezidencia"
 
@@ -33,7 +34,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "51"
+ASSET_V = "52"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -387,9 +388,8 @@ def index_html():
   </div>
 </section>
 
-<!-- §1b Apartment picker — the interactive schematic facade, moved out of the
-     hero: its hotspots are drawn on the illustration's geometry and cannot sit
-     on top of a moving camera. -->
+<!-- §1b Apartment picker — the investor's visualisation of the facade, every
+     storey a hover band with its free / reserved / sold count (floors.js). -->
 <section class="section picker-sec" id="vyber-bytu">
   <div class="shell shell-wide">
     <div class="picker-sec__head">
@@ -397,24 +397,31 @@ def index_html():
         <p class="eyebrow">Výber bytu</p>
         <h2>Vyberte si byt priamo v dome</h2>
       </div>
-      <p class="picker-sec__note">Schéma domu. Prejdite myšou po podlažiach a kliknutím otvoríte detail bytu.</p>
+      <p class="picker-sec__note">Prejdite myšou po podlažiach domu a uvidíte, koľko bytov je na nich voľných. Kliknutím zobrazíte byty na podlaží.</p>
     </div>
 
-    <div class="picker-stage" data-picker data-frame="centred">
-      <svg data-facade preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"></svg>
-      <div class="picker" role="group" aria-label="Interaktívny výber bytu zo schémy domu">
-        <svg data-hotspots preserveAspectRatio="xMidYMid meet"></svg>
-      </div>
-      <div class="tip" data-tip data-show="false" role="status" aria-live="polite"></div>
+    <div class="bldg" data-bldg>
+      <svg class="bldg__svg" viewBox="0 0 2560 1440" preserveAspectRatio="xMidYMid slice"
+           role="group" aria-label="Vizualizácia domu P6, výber podlažia">
+        <image class="bldg__img" data-bldg-img width="2560" height="1440" preserveAspectRatio="none"
+               data-src-sm="assets/img/p6-dom-1280.webp?v={ASSET_V}"
+               data-src-md="assets/img/p6-dom-1920.webp?v={ASSET_V}"
+               data-src-lg="assets/img/p6-dom-2560.webp?v={ASSET_V}"/>
+        <g data-floors></g>
+      </svg>
+      <noscript><img class="bldg__fallback" src="assets/img/p6-dom-1920.webp?v={ASSET_V}" width="1920" height="1080"
+           alt="Vizualizácia bytového domu P6 z Prievozskej ulice"></noscript>
+      <span class="bldg__label">Vizualizácia</span>
+      <div class="tip tip--floor" data-tip data-show="false" role="status" aria-live="polite"></div>
     </div>
 
     <div class="picker-sec__foot">
       <div class="legend">
-        <button type="button" class="legend__item" data-legend="dostupny"><span class="legend__dot legend__dot--ok"></span>Voľný</button>
-        <button type="button" class="legend__item" data-legend="rezervovany"><span class="legend__dot legend__dot--warn"></span>Rezervovaný</button>
-        <button type="button" class="legend__item" data-legend="predany"><span class="legend__dot legend__dot--off"></span>Predaný</button>
+        <span class="legend__item legend__item--static"><span class="legend__dot legend__dot--ok"></span>Voľný</span>
+        <span class="legend__item legend__item--static"><span class="legend__dot legend__dot--warn"></span>Rezervovaný</span>
+        <span class="legend__item legend__item--static"><span class="legend__dot legend__dot--off"></span>Predaný</span>
       </div>
-      <span class="picker__hint">{svg("cursor")} Vyberte byt priamo vo fasáde</span>
+      <span class="picker__hint">{svg("cursor")} Vyberte podlažie priamo na dome</span>
     </div>
 
     <div class="floorstrip-wrap" style="margin-top:26px">
@@ -728,7 +735,7 @@ document.addEventListener('DOMContentLoaded', function () {
   wrap.innerHTML = picks.map(function (a) { return unitCardHTML(a); }).join('');
 });
 </script>
-''' + scripts("map.js", "building.js", "list.js", "fly.js"))
+''' + scripts("map.js", "floors.js", "list.js", "fly.js"))
 
 # ---------------------------------------------------------------- byty
 
@@ -877,9 +884,228 @@ def byt_html():
 </main>
 
 <div class="sticky-cta" data-sticky-cta hidden></div>
-''' + FOOT + scripts("building.js", "list.js", "floorplan.js", "tour.js", "detail.js"))
+''' + FOOT + scripts("list.js", "floorplan.js", "tour.js", "detail.js"))
 
 # ---------------------------------------------------------------- redirects
+
+def karta_html():
+    """Print template for the per-apartment PDF (assets/pdf/P6-byt-1A.pdf …).
+
+    Not a page of the site: _build/pdf/build_pdfs.mjs opens it once per
+    apartment in headless Chrome and prints it to A4. It renders from the same
+    APARTMENTS data as byt.html, so the PDF cannot disagree with the page, and it
+    carries the architect's disclaimer on both sheets because both show areas.
+    """
+    return f'''<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<base href="../../">
+<title>P6 — karta bytu</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/site.css?v={ASSET_V}">
+<style>
+  @page {{ size: A4; margin: 0; }}
+  html, body {{ margin: 0; padding: 0; background: #fff; }}
+  body.karta {{ font-family: var(--f-ui); color: var(--ink); font-size: 9pt; line-height: 1.45;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+  .sheet {{ width: 210mm; height: 297mm; box-sizing: border-box; padding: 13mm 16mm 11mm;
+    display: flex; flex-direction: column; overflow: hidden; break-after: page; }}
+  .sheet:last-child {{ break-after: auto; }}
+
+  .k-head {{ display: flex; align-items: baseline; justify-content: space-between;
+    padding-bottom: 4.5mm; border-bottom: .25mm solid var(--line); }}
+  .k-brand {{ display: flex; align-items: baseline; gap: 3.5mm; }}
+  .k-brand b {{ font-family: var(--f-display); font-weight: 400; font-size: 19pt; line-height: 1; }}
+  .k-brand span, .k-doc {{ font-size: 6.4pt; letter-spacing: .26em; text-transform: uppercase; color: var(--text-muted); }}
+  .k-doc {{ color: var(--sand-ink); font-weight: 500; }}
+
+  .k-eyebrow {{ margin: 0 0 3mm; font-size: 6.6pt; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--sand-ink); font-weight: 500; }}
+  .k-title {{ margin-top: 9mm; }}
+  .k-title h1 {{ margin: 0; font-family: var(--f-display); font-weight: 300; font-size: 50pt;
+    line-height: .95; letter-spacing: -.012em; }}
+  .k-lede {{ margin: 3mm 0 0; font-size: 11pt; color: var(--text-muted); }}
+
+  .k-spec {{ display: grid; grid-template-columns: repeat(5, 1fr); margin: 8mm 0 0;
+    border: .25mm solid var(--line); }}
+  .k-spec div {{ padding: 3mm 4mm 3.4mm; }}
+  .k-spec div + div {{ border-left: .25mm solid var(--line); }}
+  .k-spec dt {{ font-size: 5.8pt; letter-spacing: .2em; text-transform: uppercase; color: var(--text-muted); }}
+  .k-spec dd {{ margin: 1.4mm 0 0; font-family: var(--f-display); font-size: 17pt; line-height: 1; white-space: nowrap; }}
+  .k-spec small {{ font-family: var(--f-ui); font-size: 6.5pt; color: var(--text-muted); }}
+
+  .k-plan {{ flex: 1; min-height: 0; margin: 8mm 0 0; padding: 7mm; box-sizing: border-box;
+    background: var(--paper-2); border-radius: 1.4mm; display: flex; flex-direction: column; }}
+  .k-plan__label {{ display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4mm; }}
+  .k-plan__label .k-eyebrow {{ margin: 0; }}
+  .k-plan__box {{ flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }}
+  .k-plan__box img {{ max-width: 100%; max-height: 100%; object-fit: contain; display: block; background: #fff; }}
+
+  .k-note {{ margin: 4mm 0 0; font-size: 6.8pt; line-height: 1.5; color: var(--text-muted); }}
+  .k-foot {{ margin-top: auto; padding-top: 3mm; border-top: .25mm solid var(--line);
+    display: flex; justify-content: space-between; gap: 6mm; font-size: 6.4pt; color: var(--text-muted); }}
+  .k-gap {{ height: 5mm; flex: none; }}
+
+  .k-cols {{ display: grid; grid-template-columns: 1.1fr 1fr; gap: 12mm; margin-top: 9mm; }}
+  .k-rooms {{ width: 100%; border-collapse: collapse; font-size: 8.6pt; }}
+  .k-rooms th {{ text-align: left; font-size: 5.8pt; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--text-muted); font-weight: 500; padding: 0 0 2.2mm; border-bottom: .25mm solid var(--ink); }}
+  .k-rooms th:last-child, .k-rooms td:last-child {{ text-align: right; white-space: nowrap; }}
+  .k-rooms td {{ padding: 2.1mm 0; border-bottom: .25mm solid var(--line); font-variant-numeric: tabular-nums; }}
+  .k-rooms .is-sum td {{ font-weight: 600; }}
+  .k-rooms .is-total td {{ font-weight: 600; border-bottom: 0; border-top: .25mm solid var(--ink); }}
+
+  .k-price {{ margin: 0; font-family: var(--f-display); font-size: 22pt; line-height: 1.05; }}
+  .k-extras {{ display: grid; gap: 2.5mm; }}
+  .k-extra {{ border: .25mm solid var(--line); border-radius: 1.2mm; padding: 3mm 3.6mm; }}
+  .k-extra b {{ display: block; font-weight: 600; font-size: 8.6pt; }}
+  .k-extra span {{ display: block; margin-top: .6mm; color: var(--text-muted); font-size: 8pt; }}
+  .k-small {{ margin: 3mm 0 0; font-size: 7.4pt; line-height: 1.5; color: var(--text-muted); }}
+
+  .k-where {{ margin-top: 9mm; }}
+  .k-where .fplan {{ margin: 0; }}
+  .k-where .fplan__cap {{ font-size: 6.6pt; margin-top: 2mm; }}
+  /* the flat itself in brand copper, as on the site's hover — on paper there is
+     no hover, so the one flat that matters has to carry the colour */
+  .k-where .fplan__unit.is-active polygon {{ fill: rgba(184, 115, 51, .38); stroke: var(--copper); stroke-width: 1.6; }}
+  .k-where .fplan__unit.is-active .fplan__tag circle {{ fill: var(--copper); stroke: var(--copper); }}
+
+  .k-contact {{ display: grid; grid-template-columns: 1.1fr 1fr; gap: 12mm; margin-top: 8mm;
+    padding-top: 5mm; border-top: .25mm solid var(--line); }}
+  .k-contact p {{ margin: 0; }}
+  .k-contact__big {{ font-family: var(--f-display); font-size: 15pt; line-height: 1.2; }}
+</style>
+</head>
+<body class="karta">
+<main data-karta></main>
+<script src="assets/js/data.js?v={ASSET_V}"></script>
+<script src="assets/js/site.js?v={ASSET_V}"></script>
+<script src="assets/js/floorplan.js?v={ASSET_V}"></script>
+<script>
+(async () => {{
+  const DISCLAIMER = {json.dumps(DISCLAIMER, ensure_ascii=False)};
+  const PHONE = {json.dumps(PHONE)}, EMAIL = {json.dumps(EMAIL)};
+  const WEB = {json.dumps(SITE.replace("https://", ""))};
+  const ADDRESS = {json.dumps(ADDRESS, ensure_ascii=False)};
+
+  const id = new URLSearchParams(location.search).get('id');
+  const a = APARTMENTS.find(u => u.id === id);
+  const root = document.querySelector('[data-karta]');
+  if (!a) {{ root.textContent = 'Byt ' + id + ' sa nenašiel'; window.__kartaReady = 'missing'; return; }}
+  document.title = `P6 — Byt ${{a.id}}, karta bytu`;
+
+  const today = new Date().toLocaleDateString('sk-SK');
+  const head = `<header class="k-head">
+      <div class="k-brand"><b>P6</b><span>Prievozská 6 · Bratislava-Ružinov</span></div>
+      <div class="k-doc">Karta bytu ${{a.id}}</div>
+    </header>`;
+  const foot = n => `<footer class="k-foot">
+      <span>P6 · ${{ADDRESS}}</span><span>Údaje k ${{today}}</span><span>${{n}} / 2</span>
+    </footer>`;
+  const sold = a.status === 'predany';
+
+  root.innerHTML = `
+  <section class="sheet">
+    ${{head}}
+    <div class="k-title">
+      <p class="k-eyebrow">P6 · Prievozská 6 · ${{a.floor}}. nadzemné podlažie</p>
+      <h1>Byt ${{a.id}}</h1>
+      <p class="k-lede">${{a.type}} · ${{a.floor}}. nadzemné podlažie · byt ${{a.letter}}</p>
+    </div>
+    <dl class="k-spec">
+      <div><dt>Interiér</dt><dd>${{fmtArea(a.area)}} <small>m²</small></dd></div>
+      <div><dt>${{a.extKind}}</dt><dd>${{fmtArea(a.ext)}} <small>m²</small></dd></div>
+      <div><dt>Spolu</dt><dd>${{fmtArea(a.total)}} <small>m²</small></dd></div>
+      <div><dt>Izby</dt><dd>${{a.rooms}}</dd></div>
+      <div><dt>Podlažie</dt><dd>${{a.floor}}. NP</dd></div>
+    </dl>
+    <figure class="k-plan">
+      <div class="k-plan__label"><p class="k-eyebrow">Pôdorys</p><p class="k-eyebrow">Byt ${{a.id}}</p></div>
+      <div class="k-plan__box"><img src="${{a.plan}}" alt="Pôdorys bytu ${{a.id}}"></div>
+    </figure>
+    <p class="k-note">${{DISCLAIMER}}</p>
+    <div class="k-gap"></div>
+    ${{foot(1)}}
+  </section>
+
+  <section class="sheet">
+    ${{head}}
+    <div class="k-cols">
+      <div>
+        <p class="k-eyebrow">Výmery miestností</p>
+        <table class="k-rooms">
+          <thead><tr><th>Miestnosť</th><th>Plocha</th></tr></thead>
+          <tbody>
+            ${{a.roomList.map(r => `<tr><td>${{r.name}}</td><td>${{fmtArea1(r.area)}} m²</td></tr>`).join('')}}
+            <tr class="is-sum"><td>Interiér spolu</td><td>${{fmtArea(a.area)}} m²</td></tr>
+            ${{a.ext > 0 ? `<tr><td>${{a.extKind}}</td><td>${{fmtArea1(a.ext)}} m²</td></tr>` : ''}}
+            <tr class="is-total"><td>Spolu</td><td>${{fmtArea(a.total)}} m²</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="k-eyebrow">${{sold ? 'Stav bytu' : 'Cena vrátane DPH'}}</p>
+        <p class="k-price">${{sold ? 'Predané' : fmtPrice(a.price, a.status)}}</p>
+        <p class="k-eyebrow" style="margin-top:8mm">Možnosť dokúpiť</p>
+        <div class="k-extras">
+          <div class="k-extra"><b>Pivničná kobka</b><span>plocha 1,5 – 3,0 m²</span></div>
+          <div class="k-extra"><b>Parkovacie miesto</b><span>vonkajšie státie priamo pred domom, 50 miest</span></div>
+        </div>
+        <p class="k-small">Pivničná kobka aj parkovacie miesto sa k bytu dokupujú samostatne. Cenu a dostupnosť vám oznámime na vyžiadanie.</p>
+      </div>
+    </div>
+
+    <div class="k-where">
+      <p class="k-eyebrow">Poloha v dome</p>
+      <div data-floorplan></div>
+    </div>
+
+    <div class="k-contact">
+      <div>
+        <p class="k-eyebrow">Predaj bytov</p>
+        <p class="k-contact__big">${{PHONE}}</p>
+        <p>${{EMAIL}} · ${{WEB}}</p>
+      </div>
+      <div>
+        <p class="k-eyebrow">Adresa projektu</p>
+        <p>${{ADDRESS}}</p>
+      </div>
+    </div>
+    <p class="k-note">${{DISCLAIMER}}</p>
+    <div class="k-gap"></div>
+    ${{foot(2)}}
+  </section>`;
+
+  const where = root.querySelector('[data-floorplan]');
+  mountFloorPlan(where, a.id);
+  /* a PDF has nowhere to go: the neighbours stay drawn, but not as links */
+  where.querySelectorAll('a[href]').forEach(n => n.removeAttribute('href'));
+  where.querySelectorAll('img').forEach(i => {{ i.loading = 'eager'; }});
+
+  await document.fonts.ready;
+  await Promise.all([...document.images].map(i => i.decode().catch(() => {{}})));
+  /* Chrome writes a WebP into a PDF as raw pixels, about 3 MB a page; a JPEG it
+     embeds as is. So re-encode each picture to JPEG before printing. */
+  await Promise.all([...document.images].map(async i => {{
+    const c = document.createElement('canvas');
+    c.width = i.naturalWidth; c.height = i.naturalHeight;
+    const g = c.getContext('2d');
+    g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+    g.drawImage(i, 0, 0);
+    i.src = c.toDataURL('image/jpeg', 0.86);
+    await i.decode().catch(() => {{}});
+  }}));
+  window.__kartaReady = true;
+}})();
+</script>
+</body>
+</html>
+'''
+
 
 def redirect_html(target, title):
     return f'''<!DOCTYPE html>
@@ -1056,6 +1282,7 @@ files = {
  "projekt.html": redirect_html("#projekt", "Projekt"),
  "galeria.html": galeria_html(),
  "kontakt.html": kontakt_html(),
+ "_build/pdf/karta.html": karta_html(),
  "favicon.svg": FAVICON,
  "robots.txt": ROBOTS,
  "sitemap.xml": SITEMAP,

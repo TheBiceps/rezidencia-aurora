@@ -144,68 +144,6 @@ function initFaq() {
   });
 }
 
-/* --- scrollytelling ------------------------------------------------------ */
-
-function initScrolly() {
-  document.querySelectorAll('[data-scrolly]').forEach(section => {
-    const stage = section.querySelector('[data-stage]');
-    const facade = section.querySelector('[data-scrolly-facade]');
-    const bands = section.querySelector('[data-scrolly-bands]');
-    const steps = [...section.querySelectorAll('[data-step]')];
-    const timeEl = section.querySelector('[data-timelabel]');
-    const progEl = section.querySelector('[data-progress]');
-    const idxEl = section.querySelector('[data-stepno]');
-    if (!facade || !steps.length) return;
-
-    mountFacade(facade, { ns: 'scrolly' });
-    mountFloorBands(bands);
-
-    /* measure the graphic itself — the stage is taller than the picture */
-    const graphic = section.querySelector('.scrolly__graphic');
-    const frame = () => {
-      const r = graphic.getBoundingClientRect();
-      const o = { centred: true, fill: 0.90, vfill: 0.80, base: 0.10 };
-      frameViewBox(facade, r.width, r.height, o);
-      frameViewBox(bands, r.width, r.height, o);
-    };
-    frame();
-    if (window.ResizeObserver) new ResizeObserver(frame).observe(graphic);
-
-    const bandEls = [...bands.querySelectorAll('.fband')];
-    const TIMES = ['Dopoludnia', 'Popoludní', 'Podvečer', 'Súmrak'];
-    let active = -1;
-
-    const setStep = i => {
-      if (i === active) return;
-      active = i;
-      steps.forEach((s, n) => s.classList.toggle('is-on', n === i));
-      const want = (steps[i].dataset.floors || '').split(',').map(v => v.trim()).filter(Boolean);
-      const all = want.includes('all');
-      bandEls.forEach(b => b.classList.toggle('is-on', all || want.includes(b.dataset.floor)));
-      if (stage) stage.style.setProperty('--zoom', steps[i].dataset.zoom || '1');
-      if (idxEl) idxEl.textContent = String(i + 1).padStart(2, '0');
-    };
-
-    const update = () => {
-      const r = section.getBoundingClientRect();
-      const span = Math.max(section.offsetHeight - window.innerHeight, 1);
-      const p = clamp01(-r.top / span);
-
-      if (!CALM) setSkyTime(facade, 0.20 + p * 0.80);
-      if (progEl) progEl.style.transform = `scaleX(${p.toFixed(4)})`;
-      if (timeEl) timeEl.textContent = TIMES[Math.min(TIMES.length - 1, Math.floor(p * TIMES.length))];
-
-      const line = window.innerHeight * 0.58;
-      let i = 0;
-      steps.forEach((s, n) => { if (s.getBoundingClientRect().top < line) i = n; });
-      setStep(i);
-    };
-
-    onFrame(update);
-    update();
-  });
-}
-
 /* --- sticky chapter navigation (landing page) ---------------------------- */
 
 function initChapters() {
@@ -258,7 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeroScroll();
   initSpotlight();
   initFaq();
-  initScrolly();
   initReadingBar();
   initChapters();
 });

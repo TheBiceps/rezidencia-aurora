@@ -405,50 +405,6 @@ body[data-locked="true"] { overflow: hidden; }
    interactive building selector
    =========================================================================== */
 
-.picker { position: absolute; inset: 0; z-index: 1; }
-.picker svg { width: 100%; height: 100%; }
-
-.unit {
-  cursor: pointer;
-  fill: rgba(20, 18, 15, 0);
-  stroke: rgba(20, 18, 15, 0);
-  stroke-width: 2.5;
-  transition: fill .2s ease, stroke .2s ease;
-}
-.unit:focus { outline: none; }
-.unit[data-status="dostupny"]    { --hot: rgba(78, 115, 85, .58);  --hotline: #2C4633; }
-.unit[data-status="rezervovany"] { --hot: rgba(176, 128, 40, .58); --hotline: #6B4C12; }
-.unit[data-status="predany"]     { --hot: rgba(74, 68, 62, .55);   --hotline: #2E2A26; cursor: not-allowed; }
-
-.unit.is-hot,
-.unit:focus-visible { fill: var(--hot, rgba(169,140,100,.55)); stroke: var(--hotline, #6E5533); }
-
-/* one-off intro sweep on load, so the affordance needs no explaining */
-.is-intro .unit {
-  fill: var(--hot);
-  stroke: var(--hotline);
-  opacity: 0;
-  animation: unitIntro 1200ms var(--d) both;
-}
-@keyframes unitIntro {
-  0%   { opacity: 0; }
-  18%  { opacity: 1; }
-  46%  { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* floor is hovered → its whole band lifts slightly */
-.unit.is-dim { fill: rgba(24, 22, 18, .22); }
-
-.picker__floorlabel {
-  fill: var(--ink);
-  font-family: var(--f-ui);
-  font-size: 15px; letter-spacing: .16em; font-weight: 600;
-  opacity: 0; transition: opacity .2s ease;
-  pointer-events: none;
-}
-.picker__floorlabel.is-on { opacity: 1; }
-
 /* --- tooltip card ------------------------------------------------------- */
 .tip {
   position: absolute; z-index: var(--z-overlay);
@@ -995,21 +951,9 @@ table.rooms tbody.rooms__sum tr:hover { background: none; }
 }
 @keyframes cueRun { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
 
-/* legend entries are real buttons — hovering one lights up every matching unit */
-.legend__item {
-  background: none; border: 0; font: inherit; cursor: pointer;
-  padding: 8px 2px; color: var(--text-muted);
-  transition: color .2s ease;
-}
-.legend__item:hover { color: var(--ink); }
-.legend__dot { transition: transform .2s ease, box-shadow .2s ease; }
-.legend__item:hover .legend__dot { transform: scale(1.45); }
 
 /* the facade recedes slightly while a unit is being inspected */
 .hero__vis { transition: none; }
-.is-picking .picker__floorlabel { opacity: .32; }
-.is-picking .picker__floorlabel.is-on { opacity: 1; }
-.is-legend .picker__floorlabel { opacity: 0; }
 
 /* ===========================================================================
    scrollytelling: the building, storey by storey
@@ -1299,7 +1243,6 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
    =========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .is-intro .unit { animation: none; opacity: 0; }
   .hero__cue-line::after { animation: none; }
   .scrolly__graphic { transform: none; transition: none; }
   .scrolly__step { opacity: 1; }
@@ -2038,11 +1981,78 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
   gap: 18px 40px; margin-bottom: clamp(24px, 3.5vw, 40px);
 }
 .picker-sec__note { margin: 0; max-width: 42ch; font-size: .92rem; color: var(--text-muted); }
-.picker-stage {
-  position: relative; aspect-ratio: 21 / 9; min-height: 320px;
-  background: #AEC3D2; border-radius: var(--r-md); overflow: hidden;
+/* --- the building: the investor's visualisation, one hover band per storey */
+.bldg {
+  position: relative; aspect-ratio: 16 / 9;
+  background: #C9D6DE; border-radius: var(--r-md); overflow: hidden;
 }
-.picker-stage > svg[data-facade] { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.bldg__svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.bldg__img { opacity: 0; transition: opacity .5s ease; }
+.bldg.is-loaded .bldg__img { opacity: 1; }
+.bldg__fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.bldg__label {
+  position: absolute; right: 14px; bottom: 12px; z-index: 2; pointer-events: none;
+  font-size: .62rem; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(247, 244, 239, .92);
+  background: rgba(20, 18, 15, .32); padding: 5px 10px; border-radius: 100px;
+}
+
+/* One colour for every storey, brand copper, as on the storey plans. The band
+   is filled lightly so the balconies still read through it, and outlined in
+   full copper so the edge is unmistakable over foliage and glass. */
+.bldg__floor { cursor: pointer; }
+.bldg__floor:focus { outline: none; }
+.bldg__floor > rect {
+  fill: rgba(184, 115, 51, 0); stroke: rgba(184, 115, 51, 0);
+  stroke-width: 2.5px; vector-effect: non-scaling-stroke;
+  transition: fill .18s ease, stroke .18s ease;
+}
+.bldg__floor.is-hot > rect,
+.bldg__floor:focus-visible > rect { fill: rgba(184, 115, 51, .46); stroke: var(--copper); }
+.bldg__floor:focus-visible > rect { stroke-width: 3.5px; }
+/* the rest of the house steps back a little while one storey is inspected */
+.bldg.is-picking .bldg__floor:not(.is-hot) > rect { fill: rgba(20, 18, 15, .16); }
+
+.bldg__tag { opacity: 0; transition: opacity .18s ease; pointer-events: none; }
+.bldg__tag rect { fill: var(--copper); }
+.bldg__tag text {
+  fill: var(--paper); font-family: var(--f-ui); font-size: 26px; font-weight: 600;
+  letter-spacing: .08em; text-anchor: middle;
+}
+.bldg__floor.is-hot .bldg__tag,
+.bldg__floor:focus-visible .bldg__tag { opacity: 1; }
+
+/* first sight: each storey lights once, bottom to top */
+.bldg.is-intro .bldg__floor > rect { animation: floorIntro 760ms ease both; }
+.bldg.is-intro .bldg__floor:nth-child(2) > rect { animation-delay: 240ms; }
+.bldg.is-intro .bldg__floor:nth-child(3) > rect { animation-delay: 480ms; }
+.bldg.is-intro .bldg__floor:nth-child(4) > rect { animation-delay: 720ms; }
+.bldg.is-intro .bldg__floor:nth-child(5) > rect { animation-delay: 960ms; }
+@keyframes floorIntro {
+  0%, 100% { fill: rgba(184, 115, 51, 0); stroke: rgba(184, 115, 51, 0); }
+  35%, 60% { fill: rgba(184, 115, 51, .42); stroke: var(--copper); }
+}
+@media (prefers-reduced-motion: reduce) { .bldg.is-intro .bldg__floor > rect { animation: none; } }
+
+/* the floor card */
+@media (min-width: 900px) {
+  /* placed by floors.js beside the storey, so no centring translate */
+  .tip--floor { width: 250px; transform: translateY(6px) scale(.97); }
+  .tip--floor[data-show="true"] { transform: none; }
+}
+.tip--floor .tip__head { align-items: baseline; justify-content: flex-start; gap: 10px; margin-bottom: 12px; }
+.tip--floor .tip__type { margin: 0; }
+.tip__row--total { padding-bottom: 8px; margin-bottom: 2px; border-bottom: 1px solid var(--line-soft); }
+.tip__row--total dt { color: var(--ink); }
+.tip__row--total dd { font-size: 1.05em; font-weight: 600; }
+.tip__row dt { display: inline-flex; align-items: center; gap: 8px; }
+.tip__bar { display: flex; height: 5px; border-radius: 3px; overflow: hidden; background: var(--paper-3); margin: 4px 0 6px; }
+.tip__bar span { display: block; height: 100%; }
+.tip__bar--ok { background: var(--ok); }
+.tip__bar--warn { background: var(--warn); }
+.tip__bar--off { background: var(--off); }
+.tip--floor .tip__cta { color: var(--copper); }
+
 .picker-sec__foot {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
   gap: 12px 30px; margin-top: 18px;
@@ -2051,5 +2061,7 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
   /* a height, not aspect-ratio + min-height: Chrome carries that min-height
      back across the ratio into the width, and the stage pushes the page
      37px sideways on a 390px phone */
-  .picker-stage { aspect-ratio: auto; min-height: 0; height: max(220px, 58vw); }
+  /* the building framed tighter (floors.js DOM_VIEW.narrow), same ratio as that crop */
+  .bldg { aspect-ratio: 1660 / 900; }
+  .bldg__tag { display: none; }
 }

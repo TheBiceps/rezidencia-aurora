@@ -172,20 +172,30 @@ Nothing here is decorative-only; each piece is doing a job.
 - **Phones:** the picture takes the top 56% of the pinned screen and the copy
   sits below it on paper, so the text never fights the footage.
 
-**Building picker** (`#vyber-bytu`, right under the hero)
-- It used to be the hero. It moved into its own section because hotspots
-  cannot sit on a moving camera. It is framed centred (`data-frame="centred"`)
-  now that no headline needs the left-hand sky.
-- Hovering a unit in the facade lights it in its status colour, keeps its whole
-  storey bright, dims the rest, and shows a card with type, area, orientation
-  and price. Click opens the detail.
-- Hovering a **legend** entry (Voľný / Rezervovaný / Predaný) lights every unit
-  with that status at once — the fastest read of what's still available.
-- A one-off sweep runs bottom-up the first time the picker scrolls into view,
-  so the affordance needs no copy.
-- There is deliberately **no** pointer parallax — drifting the facade under the
-  cursor read as wobble, not depth. The layer groups still exist in
-  `mountFacade()` if it is ever wanted back.
+**Floor picker** (`#vyber-bytu`, right under the hero; `assets/js/floors.js`)
+- The investor's exterior visualisation of P6 (sent 17. 9. 2026), upscaled 2x
+  in Magnific with the zero-creativity *ultra-photo* mode so nothing on the
+  facade changed; `assets/img/p6-dom-{1280,1920,2560}.webp`. It replaced the
+  drawn placeholder facade (`building.js`, deleted).
+- Every storey is a hover band. Hover paints it in brand copper (the same
+  colour as the storey plans), the other storeys step back slightly, a `3. NP`
+  tag appears on the facade, and a card shows **Bytov na podlaží**, **Voľné**,
+  **Rezervované**, **Predané** with a status bar. Click opens
+  `byty.html?floor=N`. Counts are read from `data.js`, so a status change there
+  updates the card.
+- The bands are measured on the 2560x1440 image against the bottom edge of
+  each balcony slab (`DOM_FLOORS`, `DOM_X`). Ground floor is 1. NP; the roof
+  terrace is not a storey. **A different picture means re-measuring them.**
+- The picture lives inside the same SVG as the bands, so cropping the viewBox
+  moves both together. Phones use a tighter frame on the building
+  (`DOM_VIEW.narrow`), which makes a storey a ~32px tall, full-width band.
+- Desktop: the card sits in the street to the left of the building, level with
+  the storey, and falls back to over the facade when there is no room. Phones:
+  first tap opens a bottom sheet with *Zobraziť byty na N. NP*; a second tap
+  on the same storey or the button goes on. (The tap state is tracked apart
+  from focus: a tap focuses the link before it clicks.)
+- A one-off sweep lights each storey bottom to top the first time the section
+  is seen. The picture loads on approach, at the smallest size that is sharp.
 - Counters count up when they come into view.
 
 **Maps** (`[data-citymap]`, `assets/js/map.js`)
@@ -223,7 +233,7 @@ Nothing here is decorative-only; each piece is doing a job.
 
 (The former storey-by-storey scrollytelling section was removed: the brief
 rules out claims about setbacks and penthouses until the architecture is
-confirmed. `initScrolly()` still exists and is a no-op without markup.)
+confirmed. Its engine went with `building.js`.)
 
 **Apartment detail**
 - The plan is the architect's rendered drawing for that flat, with his own room
@@ -238,6 +248,23 @@ confirmed. `initScrolly()` still exists and is a no-op without markup.)
   letterbox, and squeezed to a phone it lands ~145px tall, too small to read
   nine flats off.
 - `←` / `→` walk through the building in order.
+- **Stiahnuť PDF** downloads the apartment sheet, see below.
+
+**Apartment PDFs** (`assets/pdf/P6-byt-1A.pdf` …, one per apartment)
+- Two A4 pages: title, the five key figures (interiér, balkón, spolu, izby,
+  podlažie) and the architect's plan; then the room table, price, **možnosť
+  dokúpiť** (pivničná kobka 1,5 – 3,0 m², parkovacie miesto pred domom), the
+  storey plan with the flat in copper, contact, and the disclaimer on both
+  pages. The footer is dated.
+- They are **static files: regenerate them after any change to `data.js` or
+  the contact details** (the phone and e-mail are still placeholders):
+  `python3 rezidencia/_build/build_pages.py` then
+  `node rezidencia/_build/pdf/build_pdfs.mjs` (`ONLY=1.B,3.H` for a few).
+- How: `build_pages.py` writes a print template, `_build/pdf/karta.html`,
+  rendering from the same `APARTMENTS` as `byt.html`; the script prints it once
+  per apartment in headless Chrome. The template re-encodes the plans to JPEG
+  before printing, because Chrome writes a WebP into a PDF as raw pixels (3 MB
+  a file instead of ~700 KB).
 
   *A compass used to point at the flat's orientation; it was removed because
   nothing in the client's material states which way the building faces, and the
@@ -344,7 +371,6 @@ Layout changes made for the phone:
   read as dead space.
 - **The apartment detail page gets a fixed price + enquiry bar**, so the CTA
   is not 2,000px up the page.
-- **The legend is tappable**, since hovering it does nothing on a phone.
 - Type and section padding step down, `--nav-h` drops to 64px.
 
 Phone-specific behaviour, all in the `MOBILE` blocks at the end of the CSS:
@@ -357,11 +383,10 @@ Phone-specific behaviour, all in the `MOBILE` blocks at the end of the CSS:
   horizontally scrolling it on a phone is not a real option, so the
   table/card switch is hidden there. The desktop preference is remembered
   separately and restored when the viewport grows.
-- **Tapping a flat in the facade opens a bottom sheet** with the details and a
-  full-width *Zobraziť detail* button. Hotspots are ~28x46px on a 375px screen
-  because the building is simply wide relative to a phone; the sheet makes an
-  imprecise tap cost one extra tap instead of a wrong page. The floor strip
-  under the picker is the precise route.
+- **Tapping a storey on the building opens a bottom sheet** with its counts
+  and a full-width *Zobraziť byty* button, so an imprecise tap costs one extra
+  tap instead of a wrong page. The floor strip under the picture is the other
+  route.
 - **The floor plan switches to a portrait 420x520 box** so its labels render
   around 11px rather than 7px.
 - `--nav-h` drops to 64px.
@@ -398,30 +423,20 @@ Tokens are at the top of `assets/css/site.css`.
 | `site.js` | shared helpers, navigation, drawer, forms |
 | `plan.js` | schematic floor plans — full on the detail page, compact thumbnails on cards |
 | `map.js` | schematic city map, five-minute city, business-zone route |
-| `building.js` | placeholder facade geometry, SVG generation, building picker |
+| `floors.js` | "Vyberte si byt priamo v dome": storey bands on the visualisation, floor card, floor strip |
 | `fly.js` | hero fly-by: WebCodecs → canvas, scroll-linked, copy beats, progress bar |
 | `motion.js` | reveal, count-up, spotlight, chapter scroll-spy |
 | `list.js` | unit cards + the brief's six filters (also exports `unitCardHTML`) |
 | `detail.js` | single-unit page, plan, room table, sticky CTA |
 | `floorplan.js` | "Poloha v dome" — clickable storey plan, outlines + letter→flat mapping |
 
-Load order matters: `data.js → site.js → motion.js → plan.js → (map.js | building.js | list.js | detail.js)`.
-
-Two facades can appear on one page (hero + scrollytelling), so **SVG gradient
-ids are namespaced per mount** (`mountFacade(el, { ns: 'scrolly' })`). Reusing a
-plain `id="sky"` would make the second facade silently read the first one's
-gradients.
+Load order matters: `data.js → site.js → motion.js → plan.js → (map.js | floors.js | list.js | detail.js)`.
 
 ## Notes
 
 - Slovak only. If EN/DE is needed later, the cleanest route is a `/en/` copy
   sharing `assets/`, with the labels in `site.js` and `data.js` lifted into a
   dictionary.
-- The scrollytelling section is ~5 viewports tall. If that feels long, drop a
-  step in `index.html` — the engine reads however many `[data-step]` elements
-  it finds.
-- On phones the facade hotspots are ~28px tall — the building is simply wide
-  relative to a phone screen. First tap previews, second tap opens, and the
-  floor strip under the picker plus the full list page are the reliable paths.
-- Keyboard: every unit in the facade is tabbable with a visible focus ring.
+- Keyboard: every storey on the building is a link, and focusing one shows
+  its card.
 - `prefers-reduced-motion` is respected throughout.

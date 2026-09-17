@@ -34,6 +34,7 @@ const roomsLabel = n => n >= 5 ? 'Penthouse' : `${n}-izbový`;
 
 const icon = {
   arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
   sort: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6 6 6-6"/></svg>',
 };
 
@@ -110,8 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initNav();
   initForms();
   initChrome();
-  const picker = document.querySelector('[data-picker]');
-  if (picker && typeof initPicker === 'function') initPicker(picker);
   if (typeof initList === 'function') initList();
   if (typeof initDetail === 'function') initDetail();
 });

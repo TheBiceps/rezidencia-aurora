@@ -68,6 +68,11 @@ function initDetail() {
     ? `<tr><td>${a.extKind}</td><td>${fmtArea1(a.ext)} m²</td></tr>` : '';
   rt.querySelector('[data-sum-all]').textContent = fmtArea(a.total) + ' m²';
 
+  /* the two-page apartment sheet, printed ahead of time by
+     _build/pdf/build_pdfs.mjs under the same name */
+  const pdf = `assets/pdf/P6-byt-${a.id.replace('.', '')}.pdf`;
+  const pdfBtn = `<a class="btn btn--ghost aside__pdf" href="${pdf}" download>Stiahnuť PDF ${icon.download}</a>`;
+
   root.querySelector('[data-aside]').innerHTML = `
     <div class="aside__box">
       <p class="eyebrow" style="margin-bottom:4px">${a.status === 'predany' ? 'Stav bytu' : 'Cena vrátane DPH'}</p>
@@ -77,9 +82,11 @@ function initDetail() {
       <div class="aside__actions">
         ${a.status === 'predany'
           ? `<a class="btn btn--primary" href="byty.html?status=dostupny">Zobraziť voľné byty ${icon.arrow}</a>
+             ${pdfBtn}
              <a class="btn btn--ghost" href="kontakt.html">Napísať nám</a>`
           : `<a class="btn btn--primary" href="kontakt.html?byt=${encodeURIComponent(a.id)}">
                ${a.status === 'rezervovany' ? 'Zapísať sa ako náhradník' : 'Mám záujem o tento byt'} ${icon.arrow}</a>
+             ${pdfBtn}
              <a class="btn btn--ghost" href="byty.html">Späť na ponuku</a>`}
       </div>
       <p class="form__note" style="margin:18px 0 0">
