@@ -49,7 +49,7 @@ const FLOOR_IMG = {
   '1':  { src: 'assets/plans/floor-1np.webp',  w: 1412, h: 583,
           label: '1. nadzemné podlažie' },
   '25': { src: 'assets/plans/floor-25np.webp', w: 1394, h: 610,
-          label: '2.–5. nadzemné podlažie' },
+          label: '2. až 5. nadzemné podlažie' },
 };
 
 const floorKey = floor => (floor === 1 ? '1' : '25');
@@ -137,7 +137,7 @@ function floorPlanHTML(floor, { activeId = null, titles = true, lazy = false } =
        </div>
       </div>
       <figcaption class="fplan__cap">${img.label}${floor === 1
-        ? '' : ' · pôdorys je zhodný pre 2.–5. NP'}</figcaption>
+        ? '' : ' · pôdorys je zhodný pre 2. až 5. NP'}</figcaption>
     </figure>`;
 }
 

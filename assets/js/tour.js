@@ -238,7 +238,7 @@ function mountTour(host, unit) {
         <span class="tour__badge">3D model bytu ${unit.id}</span>
       </div>
       <div class="tour__intro">
-        <p>Prejdite sa bytom. Model je postavený priamo z pôdorysu architekta —
+        <p>Prejdite sa bytom. Model je postavený priamo z pôdorysu architekta,
            rozmiestnenie miestností, hrúbky stien aj dvere sedia s výkresom.</p>
         <button class="btn btn--primary" type="button" data-tour-start>
           Spustiť prehliadku
@@ -254,7 +254,7 @@ function mountTour(host, unit) {
         Ťahaním myšou alebo prstom sa rozhliadate, klávesmi W A S D alebo šípkami
         (na mobile tlačidlami) sa pohybujete. Geometria je prevzatá z výkresu;
         svetlá výška 2,65 m je predpoklad, výkres ju neuvádza. Model je bez
-        zariadenia a povrchov — slúži na overenie dispozície.
+        zariadenia a povrchov, slúži na overenie dispozície.
       </p>
     </div>`;
 

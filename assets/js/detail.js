@@ -27,7 +27,7 @@ function initDetail() {
   const next = order[(idx + 1) % order.length];
   const ppm = a.price != null ? Math.round(a.price / a.area) : null;
 
-  document.title = `Byt ${a.id} — ${a.type}, ${fmtArea(a.area)} m² | P6`;
+  document.title = `Byt ${a.id} · ${a.type}, ${fmtArea(a.area)} m² | P6`;
   const meta = document.querySelector('meta[name="description"]');
   if (meta) meta.setAttribute('content',
     `${a.type} ${a.id} na ${a.floor}. nadzemnom podlaží. Interiér ${fmtArea(a.area)} m², balkón ${fmtArea(a.ext)} m². Pôdorys a výmery miestností.`);
@@ -54,7 +54,7 @@ function initDetail() {
   const planHost = root.querySelector('[data-plan]');
   planHost.innerHTML =
     `<img class="plan__img" src="${a.plan}" loading="lazy" decoding="async"
-          alt="Pôdorys bytu ${a.id} — ${a.type}, interiér ${fmtArea(a.area)} m², ${a.extKind.toLowerCase()} ${fmtArea(a.ext)} m²">`;
+          alt="Pôdorys bytu ${a.id}: ${a.type}, interiér ${fmtArea(a.area)} m², ${a.extKind.toLowerCase()} ${fmtArea(a.ext)} m²">`;
   const dl = root.querySelector('[data-plan-download]');
   if (dl) dl.href = a.plan;
 

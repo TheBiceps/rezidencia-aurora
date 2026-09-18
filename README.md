@@ -259,7 +259,27 @@ Nothing here is decorative-only; each piece is doing a job.
   `opacity: .03` whenever `requestAnimationFrame` is throttled (hidden tab,
   reduced-motion, background render), which looks like broken tiles.
 
+**No dashes in the copy.** Filip's standing rule: no em or en dash anywhere a
+reader can see it, in any language. Ranges read "30,1 až 77,9 m²", a pause is a
+comma or a full stop, a title separator is `|`. Hyphens inside words
+("2-izbový", "Bratislava-Ružinov", "e-mail") are fine. Source comments are not
+copy and keep their punctuation.
+
 **Map data — where the numbers come from**
+- **Nothing goes in unverified.** The transport and gastronomy entries added on
+  18. 9. 2026 were checked against sources outside OpenStreetMap: the lines at
+  each stop against **imhd.sk** (Miletičova: 42, 70, 71, 72, N72; Novohradská:
+  42, 70, 72, N72; Prievozská adds 66, 96 and N74 plus the regional lines to
+  Senec, Šamorín, Modra and Malinovo), and every restaurant against its own
+  site or a delivery listing. That caught what raw map data would not:
+  **LANOGI GURMAN sits 60 m away in OSM and closed on 1. 10. 2025**, so it is
+  not on the site. It also corrected the old mobility copy, which promised tram
+  stops "a few minutes away" when the nearest one, Líščie nivy, is about a
+  kilometre off.
+- Places within ~250 m carry `tight: true`: they keep a dot on the map instead
+  of a permanent label, because eight labels inside 250 m pile into an
+  unreadable stack around P6. Their names, notes and times live in the list
+  beside the map and in the pin's popup.
 - POI coordinates in `POIS` were geocoded with **Nominatim**; the `m` (metres)
   and `walk` / `bike` / `car` minutes come from **OSRM**
   (`routing.openstreetmap.de`, `routed-foot` / `routed-bike` / `routed-car`).
@@ -464,13 +484,17 @@ Two CSS traps worth remembering if this gets extended:
 1. `[hidden] { display: none !important; }` is set globally. Any component
    with its own `display` (`.cards` had `display: grid`) otherwise ignores
    `el.hidden = true` — that bug was shipping duplicate cards under the table.
-2. `backdrop-filter` and `transform` both make an element a containing block
+2. **Leaflet stacks its panes at z-index 400–800.** The sticky bar sits at 30,
+   so in one shared stacking context the map painted its tiles and labels over
+   the navigation as soon as it scrolled under it. `.citymap` carries
+   `isolation: isolate` to keep those numbers inside the map's own box.
+3. `backdrop-filter` and `transform` both make an element a containing block
    for `position: fixed` descendants. Both had trapped a sheet inside a 68px
    bar. `.filters` drops its blur on mobile for this reason.
-3. `aspect-ratio` plus `min-height` gets carried back across the ratio into a
+4. `aspect-ratio` plus `min-height` gets carried back across the ratio into a
    minimum *width*. It pushed the phone layout 76px sideways once (`.photo`)
    and 37px again (`.picker-stage`). Give narrow boxes an explicit height.
-4. `overflow: hidden` on any ancestor of the fly-by's `.fly__pin` breaks
+5. `overflow: hidden` on any ancestor of the fly-by's `.fly__pin` breaks
    `position: sticky`. Clip inside the pin, never around it.
 
 ## Design system

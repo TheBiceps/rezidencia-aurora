@@ -18,7 +18,7 @@ const nfArea1 = new Intl.NumberFormat('sk-SK', { minimumFractionDigits: 1, maxim
 const fmtArea1 = v => nfArea1.format(v);
 
 function fmtPrice(price, status) {
-  if (status === 'predany') return '—';
+  if (status === 'predany') return 'Predané';
   if (!SHOW_PRICES || price == null) return 'Na vyžiadanie';
   return nfPrice.format(price) + ' €';
 }

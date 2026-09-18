@@ -35,7 +35,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "57"
+ASSET_V = "59"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -140,7 +140,7 @@ def nav(page, over=False):
     dlinks = "".join(f'<a class="drawer__link" href="{h}"{cur(h)}>{t}</a>' for h, t in NAV)
     return f'''<header class="nav {"nav--over" if over else "nav--solid"}" data-nav="{"over" if over else "solid"}">
   <div class="nav__inner">
-    <a class="brand" href="index.html" aria-label="{NAME} — domov">
+    <a class="brand" href="index.html" aria-label="{NAME}, domov">
       <span class="brand__mark">{logo("brand__logo")}</span>
       <span class="brand__sub">Prievozská 6</span>
     </a>
@@ -155,7 +155,7 @@ def nav(page, over=False):
 
 <div class="drawer" id="drawer" data-drawer data-open="false" aria-hidden="true">
   <div class="drawer__top">
-    <a class="brand" href="index.html" aria-label="{NAME} — domov"><span class="brand__mark">{logo("brand__logo")}</span><span class="brand__sub">Prievozská 6</span></a>
+    <a class="brand" href="index.html" aria-label="{NAME}, domov"><span class="brand__mark">{logo("brand__logo")}</span><span class="brand__sub">Prievozská 6</span></a>
     <button class="drawer__close" type="button" data-drawer-close aria-label="Zavrieť menu">{svg("x")}</button>
   </div>
   <nav class="drawer__links" aria-label="Mobilná navigácia">{dlinks}</nav>
@@ -192,7 +192,7 @@ FOOT = f'''<footer class="foot">
         <ul>
           <li><a href="tel:{PHONE.replace(' ', '')}">{PHONE}</a></li>
           <li><a href="mailto:{EMAIL}">{EMAIL}</a></li>
-          <li><span style="color:var(--text-inv-muted);font-size:.92rem">Po – Pi, 9:00 – 18:00</span></li>
+          <li><span style="color:var(--text-inv-muted);font-size:.92rem">Po až Pi, 9:00 až 18:00</span></li>
         </ul>
       </div>
     </div>
@@ -309,10 +309,10 @@ PARAMS = [
  ("Počet bytov", "44"),
  ("Počet podlaží", "5 nadzemných"),
  ("Typológie", "1- až 3-izbové"),
- ("Výmery bytov", "30,1 – 77,9 m²"),
- ("Balkóny", "8,5 – 18,3 m²"),
+ ("Výmery bytov", "30,1 až 77,9 m²"),
+ ("Balkóny", "8,5 až 18,3 m²"),
  ("Parkovacie miesta", "50, pred domom"),
- ("Pivničné kobky", "1,5 – 3,0 m²"),
+ ("Pivničné kobky", "1,5 až 3,0 m²"),
 ]
 
 def index_html():
@@ -328,7 +328,7 @@ def index_html():
 
     std = "".join(f'''<article class="std__card reveal">
         {photo("Fotografia materiálu", cap, "photo--flush", "camera",
-               src=f"assets/img/{img}.webp", alt=f"{t} — ilustračný detail", credit=DEMO_IMG)}
+               src=f"assets/img/{img}.webp", alt=f"{t}, ilustračný detail", credit=DEMO_IMG)}
         <div class="std__body"><h3>{t}</h3><p>{d}</p></div>
       </article>''' for t, d, cap, img in STANDARD)
 
@@ -347,7 +347,7 @@ def index_html():
 </section>
 '''
 
-    return (head("P6 — Domov medzi Miletičkou a Downtownom",
+    return (head("P6 | Domov medzi Miletičkou a Downtownom",
                  "Mestské bývanie na Prievozskej 6. Trh, škola, práca, Nivy aj nové centrum Bratislavy v prirodzenom dosahu.",
                  "", ld)
     + nav("index.html", over=True)
@@ -472,10 +472,11 @@ def index_html():
     </div>
 
     <div class="keyfigs" style="margin-top:clamp(26px,3vw,40px)">
+      <div class="keyfig"><b>2 min</b><span>pešo na zastávku MHD Miletičova</span></div>
       <div class="keyfig"><b>75 m</b><span>Apollo Business Center II</span></div>
       <div class="keyfig"><b>7 min</b><span>pešo do školy Novohradská</span></div>
       <div class="keyfig"><b>do 1,5 km</b><span>Nivy, Nivy Tower, CBC, Twin City, Sky Park</span></div>
-      <div class="keyfig"><b>15 – 20 min</b><span>autom na letisko Bratislava</span></div>
+      <div class="keyfig"><b>15 až 20 min</b><span>autom na letisko Bratislava</span></div>
     </div>
   </div>
 </section>
@@ -486,8 +487,8 @@ def index_html():
     <div class="grid-2" style="align-items:end">
       <h2>Menej času<br>na cestách.<br><em>Viac času<br>na život.</em></h2>
       <p class="lede">{txt(
-        "Kvalita bývania sa neukazuje iba vo výmere bytu. Ukazuje sa každé ráno – v ceste do práce, do školy, na nákup alebo za športom. P6 približuje všetko, čo tvorí každodenný mestský život.",
-        "Kvalita bývania sa ukazuje každé ráno – v ceste do práce, do školy či na nákup. P6 približuje všetko, čo tvorí mestský život.")}</p>
+        "Kvalita bývania sa neukazuje iba vo výmere bytu. Ukazuje sa každé ráno, v ceste do práce, do školy, na nákup alebo za športom. P6 približuje všetko, čo tvorí každodenný mestský život.",
+        "Kvalita bývania sa ukazuje každé ráno, v ceste do práce, do školy či na nákup. P6 približuje všetko, čo tvorí mestský život.")}</p>
     </div>
   </div>
 </section>
@@ -497,7 +498,7 @@ def index_html():
   <div class="shell shell-wide">
     {photo("Trhovisko Miletičova", "Fotografia · autentická, nie render", "photo--wide reveal",
            src="assets/img/mileticka.webp", credit=DEMO_IMG,
-           alt="Trhovisko Miletičova — rady stánkov s ovocím, zeleninou a kvetmi")}
+           alt="Trhovisko Miletičova: rady stánkov s ovocím, zeleninou a kvetmi")}
     <div class="grid-2" style="margin-top:clamp(30px,4vw,52px);align-items:start">
       <div class="reveal">
         <p class="eyebrow">Každodenný život</p>
@@ -539,6 +540,7 @@ def index_html():
     <div style="max-width:60ch;margin-bottom:clamp(24px,3vw,36px)">
       <p class="eyebrow">Päťminútové mesto</p>
       <h2>Prepnite si spôsob dopravy.<br>Mesto sa prispôsobí.</h2>
+      <p class="lede" style="margin-top:18px">Zastávka MHD je pred domom, kaviareň, brunch bar, indická reštaurácia aj sushi do troch minút pešo. Vyberte si kategóriu a mapa ukáže, čo máte naozaj po ruke.</p>
     </div>
     <div class="fivemin" data-citymap="interactive" data-theme="dark">
       <div>
@@ -581,7 +583,7 @@ def index_html():
       "Spojená škola Novohradská", "Fotografia bude doplnená",
       "photo--air", "camera",
       src="assets/img/skola-novohradska.webp",
-      alt="Letecký pohľad na areál Spojenej školy Novohradská — školské budovy, bežecký ovál, ihrisko a detské ihrisko, 547 m od P6",
+      alt="Letecký pohľad na areál Spojenej školy Novohradská: školské budovy, bežecký ovál, ihrisko a detské ihrisko, 547 m od P6",
       credit=DEMO_IMG)}</div>
 
     <div class="grid-2" style="align-items:start;margin-top:clamp(28px,4vw,48px)">
@@ -591,8 +593,8 @@ def index_html():
       </div>
       <div class="reveal">
         <p class="lede">{txt(
-          "Spojená škola Novohradská je od P6 vzdialená 547 metrov — sedem minút pešo. Každodenná cesta do školy preto nemusí znamenať ranné státie v aute ani ďalšiu cestu cez mesto.",
-          "Spojená škola Novohradská je 547 metrov od P6 — sedem minút pešo. Cesta do školy nemusí znamenať ranné státie v aute.")}</p>
+          "Spojená škola Novohradská je od P6 vzdialená 547 metrov, sedem minút pešo. Každodenná cesta do školy preto nemusí znamenať ranné státie v aute ani ďalšiu cestu cez mesto.",
+          "Spojená škola Novohradská je 547 metrov od P6, sedem minút pešo. Cesta do školy nemusí znamenať ranné státie v aute.")}</p>
         <ul class="points">
           <li class="point">základná škola</li>
           <li class="point">gymnázium</li>
@@ -621,10 +623,10 @@ def index_html():
         "Autobusová stanica Nivy prepája P6 s mestom, regiónmi aj zahraničím. MHD, cyklotrasy a diaľnica dávajú slobodu vybrať si dopravu podľa dňa.")}</p>
     </div>
     <div class="mob">
-      <article class="mob__card reveal">{svg("tram")}<h3>MHD</h3><p>Zastávky električiek a autobusov pár minút pešo od domu. Do centra aj na vlakovú stanicu bez auta.</p></article>
-      <article class="mob__card reveal">{svg("bus")}<h3>Autobusová stanica</h3><p>Nivy – regionálne aj medzinárodné linky. Približne 15 minút pešo alebo pár minút bicyklom.</p></article>
+      <article class="mob__card reveal">{svg("bus")}<h3>Zastávka pred domom</h3><p>Zastávka Miletičova je 2 minúty pešo od vchodu. Stoja na nej linky 42, 70, 71, 72 a nočná N72. Zastávka Novohradská je 4 minúty pešo.</p></article>
+      <article class="mob__card reveal">{svg("bus")}<h3>Autobusová stanica Nivy</h3><p>Regionálne aj medzinárodné linky, približne 15 minút pešo. Prímestské spoje na Senec, Šamorín, Modru či Malinovo stoja aj na Prievozskej, 7 minút pešo.</p></article>
       <article class="mob__card reveal">{svg("bike")}<h3>Cyklistické spojenia</h3><p>Cyklotrasy smerom na nábrežie a do centra. Na bicykli ste v Downtowne za pár minút.</p></article>
-      <article class="mob__card reveal">{svg("road")}<h3>Diaľnica a letiská</h3><p>Nájazd na D1 v blízkosti. Letisko Bratislava 10–15 min, Schwechat 45–55 min autom.</p></article>
+      <article class="mob__card reveal">{svg("road")}<h3>Diaľnica a letiská</h3><p>Nájazd na D1 v blízkosti. Letisko Bratislava 10 až 15 min, Schwechat 45 až 55 min autom.</p></article>
     </div>
   </div>
 </section>
@@ -696,7 +698,7 @@ def index_html():
       </div>
       <div class="reveal">{photo("Komunitná terasa", "Fotografia · večerná atmosféra", "photo--ink photo--tall", "sun",
            src="assets/img/terasa.webp", credit=DEMO_IMG,
-           alt="Strešná komunitná terasa večer — pergola, zeleň, spoločný stôl a svetelné girlandy")}</div>
+           alt="Strešná komunitná terasa večer: pergola, zeleň, spoločný stôl a svetelné girlandy")}</div>
     </div>
   </div>
 </section>
@@ -761,7 +763,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 def byty_html():
     floors = "".join(f'<option value="{i}">{i}. NP</option>' for i in range(1, 6))
-    return (head(f"Byty — {NAME}",
+    return (head(f"Byty | {NAME}",
                  "Prehľad bytov na Prievozskej 6 s pôdorysom, výmerou, orientáciou a dostupnosťou. Filtrujte podľa izieb, podlažia, výmery, exteriéru, orientácie a dostupnosti.",
                  "byty.html")
     + nav("byty.html")
@@ -775,7 +777,7 @@ def byty_html():
         <button type="button" class="filters__toggle" data-filter-toggle aria-expanded="false" aria-controls="filter-fields">
           {svg("sliders")}<span>Filtre</span><span class="filters__badge" data-filter-badge hidden></span>
         </button>
-        <span class="filters__count" data-count aria-live="polite">—</span>
+        <span class="filters__count" data-count aria-live="polite">…</span>
         <button type="button" class="filters__reset" data-reset>Zrušiť filtre</button>
       </div>
 
@@ -791,7 +793,7 @@ def byty_html():
         <select id="f-area"><option value="">Bez limitu</option><option value="35">od 35 m²</option><option value="45">od 45 m²</option><option value="55">od 55 m²</option><option value="65">od 65 m²</option><option value="75">od 75 m²</option></select></div>
       <div class="field"><label for="f-status">Dostupnosť</label>
         <select id="f-status"><option value="">Všetky</option><option value="dostupny">Voľné</option><option value="rezervovany">Rezervované</option><option value="predany">Predané</option></select></div>
-      <button type="button" class="btn btn--primary filters__apply" data-filter-close>Zobraziť <span data-count>—</span></button>
+      <button type="button" class="btn btn--primary filters__apply" data-filter-close>Zobraziť <span data-count>…</span></button>
       </div>
     </form>
   </div>
@@ -802,7 +804,7 @@ def byty_html():
     <div class="ucards" data-cards></div>
     <div class="empty" data-empty hidden>
       <h3>Žiadny byt nezodpovedá filtrom</h3>
-      <p class="lede" style="margin-inline:auto">Skúste uvoľniť niektorý z filtrov — alebo nám napíšte a nájdeme vám najbližšiu alternatívu.</p>
+      <p class="lede" style="margin-inline:auto">Skúste uvoľniť niektorý z filtrov. Alebo nám napíšte a nájdeme vám najbližšiu alternatívu.</p>
       <p><a class="btn btn--ghost" href="kontakt.html">Napísať nám</a></p>
     </div>
     <p class="form__note" style="margin-top:20px">{DISCLAIMER}</p>
@@ -816,7 +818,7 @@ def byty_html():
 # ---------------------------------------------------------------- byt
 
 def byt_html():
-    return (head(f"Detail bytu — {NAME}",
+    return (head(f"Detail bytu | {NAME}",
                  "Detail bytu: dispozícia, výmery jednotlivých miestností, orientácia, cena a dostupnosť.",
                  "byt.html")
     + nav("byty.html")
@@ -853,9 +855,9 @@ def byt_html():
               <table class="rooms" data-rooms>
                 <thead><tr><th scope="col">Miestnosť</th><th scope="col">Plocha</th></tr></thead>
                 <tbody data-rooms-in></tbody>
-                <tbody class="rooms__sum"><tr><td>Interiér spolu</td><td data-sum-in>—</td></tr></tbody>
+                <tbody class="rooms__sum"><tr><td>Interiér spolu</td><td data-sum-in>…</td></tr></tbody>
                 <tbody data-rooms-ext></tbody>
-                <tfoot><tr><td>Spolu</td><td data-sum-all>—</td></tr></tfoot>
+                <tfoot><tr><td>Spolu</td><td data-sum-all>…</td></tr></tfoot>
               </table>
             </div>
           </div>
@@ -878,7 +880,7 @@ def byt_html():
         <div class="grid-2" style="gap:16px">
           {photo("Fotografie bytu", "Doplníme po fotodokumentácii", "", "camera",
                  src="assets/img/byt-spalna.webp", credit=DEMO_IMG,
-                 alt="Ilustračná spálňa — manželská posteľ, dubová podlaha, okno so záclonou")}
+                 alt="Ilustračná spálňa: manželská posteľ, dubová podlaha, okno so záclonou")}
           {photo("Vzorový interiér", "Doplníme po dokončení vzorového bytu", "", "sun",
                  src="assets/img/interier.webp", credit=DEMO_IMG,
                  alt="Ilustračná obývačka s jedálňou a balkónom")}
@@ -1072,7 +1074,7 @@ def karta_html():
         <p class="k-price">${{sold ? 'Predané' : fmtPrice(a.price, a.status)}}</p>
         <p class="k-eyebrow" style="margin-top:8mm">Možnosť dokúpiť</p>
         <div class="k-extras">
-          <div class="k-extra"><b>Pivničná kobka</b><span>plocha 1,5 – 3,0 m²</span></div>
+          <div class="k-extra"><b>Pivničná kobka</b><span>plocha 1,5 až 3,0 m²</span></div>
           <div class="k-extra"><b>Parkovacie miesto</b><span>vonkajšie státie priamo pred domom, 50 miest</span></div>
         </div>
         <p class="k-small">Pivničná kobka aj parkovacie miesto sa k bytu dokupujú samostatne. Cenu a dostupnosť vám oznámime na vyžiadanie.</p>
@@ -1135,7 +1137,7 @@ def redirect_html(target, title):
 <meta name="robots" content="noindex">
 <meta http-equiv="refresh" content="0; url=index.html{target}">
 <link rel="canonical" href="{SITE}/{target}">
-<title>{title} — {NAME}</title>
+<title>{title} | {NAME}</title>
 <script>location.replace('index.html{target}');</script>
 </head>
 <body style="font-family:Inter,sans-serif;padding:40px">
@@ -1162,7 +1164,7 @@ def galeria_html():
         f'<div class="{"gallery__wide" if c else ""}">'
         f'{photo(t, "Fotografia bude doplnená", c or "", src=f"assets/img/{img}.webp", alt=t, credit="Vizualizácia" if img == "vizualizacia-p6" else DEMO_IMG)}'
         f'</div>' for t, c, img in tiles)
-    return (head(f"Galéria — {NAME}",
+    return (head(f"Galéria | {NAME}",
                  "Fotografie a vizualizácie: Miletička, biznis zóna, Nivy, cesta do školy, komunitná terasa a vizualizácia P6.",
                  "galeria.html")
     + nav("galeria.html")
@@ -1192,12 +1194,12 @@ def galeria_html():
 
 def kontakt_html():
     faq = "".join(f'<details><summary>{q}</summary><div class="faq__body"><p>{a}</p></div></details>' for q, a in FAQ)
-    return (head(f"Kontakt — {NAME}",
+    return (head(f"Kontakt | {NAME}",
                  "Dohodnite si konzultáciu alebo si vyžiadajte katalóg. Napíšte nám, aký byt na Prievozskej 6 hľadáte.",
                  "kontakt.html")
     + nav("kontakt.html")
     + f'''<main id="main">
-{page_head("Kontakt", "Povedzte nám,<br>čo hľadáte", "Napíšte nám počet izieb, orientáciu alebo rozpočet — a my sa ozveme s konkrétnymi bytmi, ktoré tomu zodpovedajú.", "Kontakt")}
+{page_head("Kontakt", "Povedzte nám,<br>čo hľadáte", "Napíšte nám počet izieb, orientáciu alebo rozpočet a my sa ozveme s konkrétnymi bytmi, ktoré tomu zodpovedajú.", "Kontakt")}
 
 <section class="section section--tight" style="padding-top:0">
   <div class="shell">
@@ -1213,7 +1215,7 @@ def kontakt_html():
         </div>
         <div class="form__row">
           <div><label for="c-email">E-mail *</label><input id="c-email" name="email" type="email" autocomplete="email" required></div>
-          <div><label for="c-unit">Byt, ktorý vás zaujal</label><input id="c-unit" name="unit" type="text" placeholder="napr. 4.03 — alebo nechajte prázdne"></div>
+          <div><label for="c-unit">Byt, ktorý vás zaujal</label><input id="c-unit" name="unit" type="text" placeholder="napr. 4.03, alebo nechajte prázdne"></div>
         </div>
         <div class="form__row">
           <div><label for="c-rooms">Preferovaná dispozícia</label>
@@ -1238,12 +1240,12 @@ def kontakt_html():
             <div><dt>Predaj bytov</dt><dd><a href="tel:{PHONE.replace(' ', '')}">{PHONE}</a></dd></div>
             <div><dt>E-mail</dt><dd><a href="mailto:{EMAIL}">{EMAIL}</a></dd></div>
             <div><dt>Adresa projektu</dt><dd>Prievozská 6<br>821 09 Bratislava-Ružinov</dd></div>
-            <div><dt>Otváracie hodiny</dt><dd>Pondelok – piatok<br>9:00 – 18:00</dd></div>
+            <div><dt>Otváracie hodiny</dt><dd>Pondelok až piatok<br>9:00 až 18:00</dd></div>
           </dl>
         </div>
         <div class="aside__box">
           <p class="eyebrow" style="margin-bottom:10px">Osobná obhliadka</p>
-          <p style="font-size:.94rem;color:var(--text-muted);margin:0">Radi vám ukážeme projekt osobne — vrátane vzorových materiálov a presných dispozícií. Stretnutie si dohodneme telefonicky.</p>
+          <p style="font-size:.94rem;color:var(--text-muted);margin:0">Radi vám ukážeme projekt osobne, vrátane vzorových materiálov a presných dispozícií. Stretnutie si dohodneme telefonicky.</p>
         </div>
       </aside>
     </div>

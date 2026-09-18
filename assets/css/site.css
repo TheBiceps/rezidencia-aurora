@@ -1552,6 +1552,11 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
   position: relative; border-radius: var(--r-md); overflow: hidden;
   border: 1px solid var(--line-soft); background: var(--paper-2);
   height: clamp(340px, 52vh, 560px);
+  /* Leaflet stacks its panes at z-index 400-800, the sticky bar sits at 30, and
+     in one shared stacking context the map wins: tiles and labels painted over
+     the navigation whenever the map scrolled under it. `isolation` keeps those
+     400s inside the map's own box. */
+  isolation: isolate;
 }
 .citymap--dark { background: #14120F; border-color: var(--line-inv); }
 .citymap [data-map-stage] { position: absolute; inset: 0; }

@@ -11,14 +11,44 @@
 
 const P6 = { lat: 48.146834, lng: 17.141030, label: 'P6 · Prievozská 6' };
 
-/* m = routed metres on foot; walk/bike/car = minutes */
+/* m = routed metres on foot; walk/bike/car = minutes (OSRM, September 2026).
+   `tight` marks a place close enough that a permanent label on the map would
+   collide with its neighbours: those ride as plain dots and tell their story in
+   the list and on tap.
+
+   Public transport lines were taken from imhd.sk (the stop pages for
+   Miletičova, Novohradská and Prievozská) and cross-checked against the OSM
+   route relations calling at each stop. Restaurants were checked one by one
+   against their own sites and delivery listings before being put here:
+   LANOGI GURMAN sits 60 m away in OpenStreetMap and is NOT in this list, it
+   closed on 1. 10. 2025. Re-check before adding anything from raw map data. */
 const POIS = [
+  /* --- doprava: the stop is on the pavement in front of the house --------- */
+  { id: 'zastavka', dir: 'top',     name: 'Zastávka Miletičova',              short: 'Zastávka MHD', lat: 48.147158, lng: 17.140717, m:  114, walk:  2, bike:  1, car:  2, cats: ['doprava'], key: true, tight: true,
+    note: 'Linky 42, 70, 71, 72 a nočná N72' },
+  { id: 'zastavka-novohradska', dir: 'bottom', name: 'Zastávka Novohradská',  short: 'Novohradská', lat: 48.146106, lng: 17.137387, m:  283, walk:  4, bike:  3, car:  4, cats: ['doprava'], tight: true,
+    note: 'Linky 42, 70, 72 a nočná N72' },
+  { id: 'zastavka-prievozska', dir: 'right', name: 'Zastávka Prievozská',     short: 'Prievozská',  lat: 48.148683, lng: 17.147453, m:  550, walk:  7, bike:  4, car:  3, cats: ['doprava'], tight: true,
+    note: 'Mestské linky 42, 66, 70, 71, 72, 96, nočné N72 a N74 a prímestské linky na Senec, Šamorín, Modru či Malinovo' },
+
+  /* --- gastro on the doorstep, each one checked individually -------------- */
+  { id: 'sweetspot', dir: 'top',    name: 'Sweet Spot Café',                  short: 'Sweet Spot',  lat: 48.147359, lng: 17.141378, m:   74, walk:  1, bike:  1, car:  2, cats: ['gastro'], tight: true,
+    note: 'Kaviareň, Miletičova 90' },
+  { id: 'mumbhai', dir: 'right',    name: 'MumBhai Central',                  short: 'MumBhai',     lat: 48.147478, lng: 17.141802, m:  106, walk:  2, bike:  1, car:  1, cats: ['gastro'], tight: true,
+    note: 'Indická reštaurácia, Miletičova 71' },
+  { id: 'amerikanos', dir: 'left',  name: 'Amerikanos',                       short: 'Amerikanos',  lat: 48.147044, lng: 17.140020, m:  167, walk:  2, bike:  2, car:  2, cats: ['gastro'], tight: true,
+    note: 'Burgery a grill, Prievozská 21' },
+  { id: 'balans', dir: 'left',      name: 'Balans Brunch & Coffee Bar',       short: 'Balans',      lat: 48.146913, lng: 17.139643, m:  198, walk:  3, bike:  2, car:  2, cats: ['gastro'], tight: true,
+    note: 'Brunch a káva, Prievozská 19' },
+  { id: 'sushitime', dir: 'bottom', name: 'Sushi Time Apollo',                short: 'Sushi Time',  lat: 48.145830, lng: 17.139635, m:  221, walk:  3, bike:  2, car:  2, cats: ['gastro'], tight: true,
+    note: 'Sushi, Prievozská 4/A' },
+
   { id: 'apollo', dir: 'bottom',      name: 'Apollo Business Center II',        short: 'Apollo',      lat: 48.146692, lng: 17.140077, m:   75, walk:  1, bike:  1, car:  2, cats: ['praca'] },
   { id: 'novohradska', dir: 'bottom', name: 'Spojená škola Novohradská',        short: 'Škola',       lat: 48.145905, lng: 17.134489, m:  547, walk:  7, bike:  4, car:  2, cats: ['skola'], key: true },
   { id: 'd1', dir: 'right',          name: 'Nájazd na D1',                     short: 'D1',          lat: 48.148705, lng: 17.147446, m:  550, walk:  7, bike:  4, car:  3, cats: ['doprava'] },
   { id: 'nivytower', dir: 'left',   name: 'Nivy Tower',                       short: 'Nivy Tower',  lat: 48.146215, lng: 17.130031, m:  883, walk: 12, bike:  5, car:  3, cats: ['praca'] },
   { id: 'mileticka', dir: 'top',   name: 'Trhovisko Miletičova',             short: 'Miletička',   lat: 48.153787, lng: 17.136708, m:  936, walk: 13, bike:  7, car:  3, cats: ['nakupy', 'gastro'], key: true },
-  { id: 'nivy', dir: 'left',        name: 'Nivy — centrum a autobusová stanica', short: 'Nivy',    lat: 48.146842, lng: 17.128698, m: 1042, walk: 14, bike:  8, car:  4, cats: ['doprava', 'nakupy', 'gastro'], key: true },
+  { id: 'nivy', dir: 'left',        name: 'Nivy, centrum a autobusová stanica', short: 'Nivy',    lat: 48.146842, lng: 17.128698, m: 1042, walk: 14, bike:  8, car:  4, cats: ['doprava', 'nakupy', 'gastro'], key: true },
   { id: 'twincity', dir: 'bottom',    name: 'Twin City',                        short: 'Twin City',   lat: 48.145467, lng: 17.124946, m: 1369, walk: 18, bike:  8, car:  4, cats: ['praca'] },
   { id: 'skypark', dir: 'left',     name: 'Sky Park',                         short: 'Sky Park',    lat: 48.144013, lng: 17.125541, m: 1451, walk: 19, bike:  9, car:  4, cats: ['praca', 'gastro', 'volnycas'], key: true },
   { id: 'cbc', dir: 'top',         name: 'CBC',                              short: 'CBC',         lat: 48.148714, lng: 17.125524, m: 1492, walk: 20, bike:  8, car:  5, cats: ['praca'] },
@@ -36,7 +66,7 @@ const MODES = { pesi: { label: 'Pešo', k: 'walk' }, bicykel: { label: 'Bicyklom
                 auto: { label: 'Autom', k: 'car' } };
 
 const fmtM  = m => m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`;
-const fmtT  = v => v == null ? '—' : `${v} min`;
+const fmtT  = v => v == null ? '·' : `${v} min`;
 const tier  = v => v == null ? 'far' : v <= 5 ? 'near' : v <= 15 ? 'mid' : 'far';
 
 /* --- Leaflet, loaded once and only when a map is actually needed ---------- */
@@ -96,7 +126,7 @@ function mountMap(el, opts) {
        Base carries no labels, so the Reference layer goes on top of the pins. */
     const esri = n => `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${n}/MapServer/tile/{z}/{y}/{x}`;
     const tone = dark ? 'Dark' : 'Light';
-    const ATTR = 'Tiles &copy; <a href="https://www.esri.com/">Esri</a> — Esri, HERE, Garmin, ' +
+    const ATTR = 'Tiles &copy; <a href="https://www.esri.com/">Esri</a> · Esri, HERE, Garmin, ' +
                  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
     L.tileLayer(esri(`World_${tone}_Gray_Base`), { maxZoom: 18, attribution: ATTR }).addTo(map);
     L.tileLayer(esri(`World_${tone}_Gray_Reference`), { maxZoom: 18, pane: 'shadowPane', opacity: .9 }).addTo(map);
@@ -109,13 +139,17 @@ function mountMap(el, opts) {
     const marks = {};
     shown.forEach(p => {
       const mk = L.marker([p.lat, p.lng], { icon: poiIcon(L, p), keyboard: true,
-                                            title: `${p.name} — ${fmtM(p.m)}` }).addTo(map);
+                                            title: `${p.name}, ${fmtM(p.m)}` }).addTo(map);
       const dir = p.dir || 'right';
       const off = { right: [8, 0], left: [-8, 0], top: [0, -8], bottom: [0, 8] }[dir];
+      /* Permanent labels for everything would stack into an unreadable pile
+         around P6: a third of these places are inside 250 m. The close ones
+         keep a dot and show their label on hover or focus. */
       mk.bindTooltip(`<b>${p.short}</b><span class="t-time"></span>`,
-        { permanent: true, direction: dir, offset: off, className: 'poi-tip' });
+        { permanent: !p.tight, direction: dir, offset: off, className: 'poi-tip' });
       mk.bindPopup(
         `<b>${p.name}</b><br><span class="pop-m">${fmtM(p.m)} z P6</span>` +
+        (p.note ? `<br><span class="pop-note">${p.note}</span>` : '') +
         `<br>Pešo ${fmtT(p.walk)} · Bicyklom ${fmtT(p.bike)} · Autom ${fmtT(p.car)}`);
       marks[p.id] = mk;
     });
@@ -175,7 +209,7 @@ function wire(el, map, marks, L) {
     if (list) list.innerHTML = rows.map(p => `
       <li class="reach__row" data-id="${p.id}" data-tier="${tier(p[key])}">
         <span class="reach__name">${p.name}</span>
-        <span class="reach__cats">${p.cats.map(c => CATS[c]).join(' · ')} · ${fmtM(p.m)}</span>
+        <span class="reach__cats">${p.note || p.cats.map(c => CATS[c]).join(' · ')} · ${fmtM(p.m)}</span>
         <span class="reach__time">${fmtT(p[key])}</span>
       </li>`).join('');
   }
@@ -183,7 +217,10 @@ function wire(el, map, marks, L) {
   /* frame whatever is left, P6 included, so a category never opens with half
      its places off-screen */
   function frame() {
-    const pts = POIS.filter(p => inCat(p) && (cat !== 'all' || !p.far)).map(p => [p.lat, p.lng]);
+    /* the airport is 8 km out: framing Doprava around it shrank the stops in
+       front of the house to a single dot. It stays in the list, and clicking
+       the row still flies to it. */
+    const pts = POIS.filter(p => inCat(p) && !p.far).map(p => [p.lat, p.lng]);
     map.closePopup();
     map.fitBounds(L.latLngBounds([[P6.lat, P6.lng], ...pts]),
                   { padding: [56, 56], maxZoom: 16, animate: !calm });
