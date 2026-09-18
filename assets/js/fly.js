@@ -19,6 +19,11 @@
  * continuously however slowly you scroll, and when the page comes to rest it
  * eases onto a real frame so a still never shows two frames at once.
  *
+ * Decoding and painting run in a worker (fly-worker.js) on the canvas handed
+ * over as an OffscreenCanvas; this thread only works out where the playhead
+ * should be and posts it. On the main thread a keyframe group decoding
+ * mid-scroll stalled the page for up to 250 ms, right under the reader's hand.
+ *
  * Frames are decoded a keyframe group (12 frames) at a time, and only the
  * group under the playhead plus its two neighbours are kept as bitmaps: all
  * 192 frames at 1600px would be over a gigabyte of memory. The index next to
@@ -26,8 +31,8 @@
  * byte range of every frame.
  *
  * FALLBACKS
- * No WebCodecs, an unsupported codec or a decoder error: the same MP4 goes into
- * the <video> and is seeked the old way. Reduced motion, Save-Data or no JS:
+ * No WebCodecs or OffscreenCanvas, an unsupported codec or a decoder error:
+ * the same MP4 goes into the <video> and is seeked the old way. Reduced motion, Save-Data or no JS:
  * the section stays a normal one-screen hero on the render itself and the
  * footage is never requested.
  * ------------------------------------------------------------------------ */
@@ -119,9 +124,17 @@ function initFly() {
     const exact = p * (frames - 1);
     /* while the page moves, follow it through the in-between positions; once
        it rests, settle on a whole frame */
-    const goal = now - lastMove > 140 ? Math.round(exact) : exact;
-    /* the same glide at 60 Hz and 120 Hz */
-    shown += (goal - shown) * (1 - Math.pow(0.78, dt / 16.7));
+    const settling = now - lastMove > 140;
+    const goal = settling ? Math.round(exact) : exact;
+
+    /* Smoothing costs latency, and the browser already animates a wheel scroll,
+       so only smooth what actually arrives as a jump — a keyboard PageDown, a
+       scrollbar drag, a fling — and otherwise sit exactly on the scroll
+       position. Following a wheel through a second easing was the lag.
+       The eased step is frame-rate independent: the same glide at 60 and 120 Hz. */
+    const jump = Math.abs(goal - shown);
+    const follow = (settling || jump > 8) ? 1 - Math.pow(0.62, dt / 16.7) : 1;
+    shown += (goal - shown) * follow;
     if (Math.abs(goal - shown) < 0.003) shown = goal;
 
     if (engine) engine.show(shown, dir);
@@ -132,180 +145,69 @@ function initFly() {
     if (running) requestAnimationFrame(frame);
   }
 
-  /* --- canvas size follows the stage, at up to 2x device pixels ---------- */
+  /* --- canvas size follows the stage, at up to 2x device pixels ----------
+     The canvas is handed to the worker, so its size is a message, not a
+     property; this thread keeps the last size for whenever the engine lands. */
+  let size = { width: 0, height: 0 };
   function fit() {
     const r = media.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const w = Math.max(1, Math.round(r.width * dpr));
-    const h = Math.max(1, Math.round(r.height * dpr));
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width = w;
-      canvas.height = h;
-      if (engine) engine.resize();
-    }
+    const width = Math.max(1, Math.round(r.width * dpr));
+    const height = Math.max(1, Math.round(r.height * dpr));
+    if (width === size.width && height === size.height) return;
+    size = { width, height };
+    if (engine) engine.resize(size);
   }
 
-  /* --- the WebCodecs engine ---------------------------------------------- */
+  /* --- the WebCodecs engine, in a worker ---------------------------------- */
   async function canvasEngine() {
     if (!('VideoDecoder' in window) || !('EncodedVideoChunk' in window)) {
       throw new Error('no WebCodecs');
+    }
+    if (typeof Worker !== 'function' || !canvas.transferControlToOffscreen) {
+      throw new Error('no OffscreenCanvas worker');
     }
     const ok = r => { if (!r.ok) throw new Error(`${r.url} ${r.status}`); return r; };
     const [meta, buf] = await Promise.all([
       fetch(SRC.json).then(ok).then(r => r.json()),
       fetch(SRC.mp4).then(ok).then(r => r.arrayBuffer()),
     ]);
-
     const description = Uint8Array.from(atob(meta.description), c => c.charCodeAt(0));
-    const config = {
-      codec: meta.codec, codedWidth: meta.width, codedHeight: meta.height,
-      description, optimizeForLatency: true,
-    };
-    const support = await VideoDecoder.isConfigSupported(config);
-    if (!support.supported) throw new Error(`${meta.codec} not supported`);
 
-    const index = meta.frames;               // [byte offset, byte length, keyframe]
-    const n = index.length;
-    const usec = 1e6 / meta.fps;
-    const keys = [];
-    index.forEach((f, i) => { if (f[2]) keys.push(i); });
-    const groupOf = i => {
-      let lo = 0, hi = keys.length - 1;
-      while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (keys[mid] <= i) lo = mid; else hi = mid - 1; }
-      return lo;
-    };
-    const groupRange = g => [keys[g], g + 1 < keys.length ? keys[g + 1] : n];
+    const worker = new Worker(`assets/js/fly-worker.js${ver}`);
+    const off = canvas.transferControlToOffscreen();
+    let live = true;
+    const stop = () => { if (live) { live = false; worker.postMessage({ type: 'close' }); worker.terminate(); } };
 
-    const ctx = canvas.getContext('2d', { alpha: false });
-    const cache = new Map();                 // frame -> ImageBitmap
-    const ready = new Set();                 // groups fully decoded into cache
-    let pending = [];                        // bitmaps still being made
-    let want = 0, wantDir = 1, busy = false, broken = null;
-    let dirty = true, lastPos = -1, revealed = false;
-
-    const decoder = new VideoDecoder({
-      output: vf => {
-        const i = Math.round(vf.timestamp / usec);
-        pending.push(createImageBitmap(vf).then(bmp => {
-          vf.close();
-          const old = cache.get(i);
-          if (old) old.close();
-          cache.set(i, bmp);
-          dirty = true;
-        }, err => { vf.close(); throw err; }));
-      },
-      error: err => { broken = err; },
+    const started = new Promise((resolve, reject) => {
+      worker.addEventListener('message', e => {
+        if (e.data.type === 'ready') resolve(e.data.frames);
+        else if (e.data.type === 'error') reject(new Error(e.data.message));
+      });
+      worker.addEventListener('error', e => reject(new Error(e.message || 'worker failed')));
+      setTimeout(() => reject(new Error('decoder timed out')), 8000);
     });
-    decoder.configure(config);
 
-    async function decodeGroup(g) {
-      const [a, b] = groupRange(g);
-      pending = [];
-      for (let i = a; i < b; i++) {
-        const [pos, len, key] = index[i];
-        decoder.decode(new EncodedVideoChunk({
-          type: key ? 'key' : 'delta',
-          timestamp: Math.round(i * usec),
-          duration: Math.round(usec),
-          data: new Uint8Array(buf, pos, len),
-        }));
-      }
-      await decoder.flush();
-      await Promise.all(pending);
-      if (broken) throw broken;
-      ready.add(g);
-    }
+    fit();
+    worker.postMessage({ type: 'init', meta, description, buf, canvas: off, focusY: FOCUS_Y, ...size }, [buf, off]);
 
-    function drop(g) {
-      const [a, b] = groupRange(g);
-      for (let i = a; i < b; i++) {
-        const bmp = cache.get(i);
-        if (bmp) { bmp.close(); cache.delete(i); }
-      }
-      ready.delete(g);
-    }
+    let n;
+    try { n = await started; } catch (err) { stop(); throw err; }
 
-    /* the group under the playhead first, then the one it is heading into,
-       then the one behind; everything else is let go before decoding more */
-    async function pump() {
-      if (busy || broken) return;
-      busy = true;
-      try {
-        for (;;) {
-          const keep = [want, want + wantDir, want - wantDir].filter(g => g >= 0 && g < keys.length);
-          for (const g of [...ready]) if (!keep.includes(g)) drop(g);
-          const next = keep.find(g => !ready.has(g));
-          if (next === undefined) break;
-          await decodeGroup(next);
-        }
-      } catch (err) {
-        broken = broken || err;
-      }
-      busy = false;
-      if (broken) fail(broken);
-    }
+    worker.addEventListener('message', e => {
+      /* a decoder that dies later must not leave a frozen picture */
+      if (e.data.type === 'error' && live) fail(new Error(e.data.message));
+      /* the frame on screen, for anything watching from the outside */
+      else if (e.data.type === 'drew') canvas.dataset.frame = e.data.pos.toFixed(3);
+    });
 
-    function nearest(i) {
-      for (let d = 1; d < 24; d++) {
-        if (cache.has(i - d)) return cache.get(i - d);
-        if (cache.has(i + d)) return cache.get(i + d);
-      }
-      return null;
-    }
-
-    function cover(bmp, alpha) {
-      const cw = canvas.width, ch = canvas.height;
-      const s = Math.max(cw / bmp.width, ch / bmp.height);
-      const dw = bmp.width * s, dh = bmp.height * s;
-      ctx.globalAlpha = alpha;
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(bmp, (cw - dw) * 0.5, (ch - dh) * FOCUS_Y, dw, dh);
-    }
-
-    /* the first group has to decode before this engine takes over, with a time
-       limit: a decoder that never answers must not leave the hero frozen */
-    const first = decodeGroup(0);
-    first.catch(() => {});                   // the race below reports it
-    await Promise.race([
-      first,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('decoder timed out')), 8000)),
-    ]).catch(err => { try { decoder.close(); } catch (e) { /* already closed */ } throw err; });
-
+    root.classList.add('is-ready');
     return {
       frames: n,
-      show(pos, heading) {
-        const i0 = Math.max(0, Math.min(n - 1, Math.floor(pos)));
-        const t = pos - i0;
-        const i1 = Math.min(n - 1, i0 + 1);
-        /* a blend partner across a group boundary is covered: the neighbours
-           either side of the playhead's group are always kept */
-        const g = groupOf(i0);
-        if (g !== want || heading !== wantDir) { want = g; wantDir = heading; }
-        if (!busy) pump();
-
-        if (!dirty && Math.abs(pos - lastPos) < 0.0005) return;
-        const b0 = cache.get(i0);
-        const b1 = t > 0.004 ? cache.get(i1) : null;
-        const baseBmp = b0 || nearest(i0);
-        if (!baseBmp) return;
-        cover(baseBmp, 1);
-        if (b0 && b1) cover(b1, t);
-        ctx.globalAlpha = 1;
-        dirty = !b0 || (t > 0.004 && !b1);
-        lastPos = pos;
-        canvas.dataset.frame = b0 ? pos.toFixed(3) : `~${i0}`;
-        if (!revealed) { revealed = true; root.classList.add('is-ready'); }
-      },
-      resize() { dirty = true; },
-      /* off screen: hand back all but the group under the playhead */
-      rest() { for (const g of [...ready]) if (g !== want) drop(g); },
-      destroy() {
-        try { decoder.close(); } catch (e) { /* already closed */ }
-        cache.forEach(b => b.close());
-        cache.clear();
-        ready.clear();
-      },
+      show(pos, dir) { if (live) worker.postMessage({ type: 'show', pos, dir }); },
+      resize(next) { if (live) worker.postMessage({ type: 'resize', ...next }); },
+      rest() { if (live) worker.postMessage({ type: 'rest' }); },
+      destroy() { stop(); },
     };
   }
 
@@ -333,7 +235,7 @@ function initFly() {
       },
       resize() {},
       rest() {},
-      destroy() {},
+      destroy() {},   // the <video> keeps whatever it has buffered
     };
   }
 
@@ -365,7 +267,7 @@ function initFly() {
   paintBeats(progress());
 
   canvasEngine()
-    .then(e => { engine = e; frames = e.frames; })
+    .then(e => { engine = e; frames = e.frames; e.resize(size); })
     .catch(fail);
 }
 
