@@ -141,9 +141,20 @@ Nothing here is decorative-only; each piece is doing a job.
   out where the playhead should be and posts it. On the main thread a keyframe
   group decoding mid-scroll stalled the page for up to 250 ms — exactly under
   the reader's hand.
-- **The playhead sits on the scroll position**, and is only eased when the
-  scroll actually jumps (keyboard, scrollbar, fling). Easing a wheel that the
-  browser already animates was the second half of the lag.
+- **The camera glides toward the scroll position** (`GLIDE_MS` in `fly.js`,
+  95 ms, frame-rate independent), and so do the copy beats and the progress
+  bar. This is the whole trick for a plain office mouse: a wheel notch jumps
+  the page ~114px in one go, about 8 frames of an 8-second clip, so following
+  the scroll exactly means the picture lands on one frame, waits, and lands on
+  the next — stepping. Measured with Chrome's smooth scrolling switched off
+  (`--disable-smooth-scrolling`, which is what such a mouse behaves like):
+  following exactly gave jumps of up to 8.7 frames with 70% of refreshes
+  showing nothing new; the glide gives 1–2 frames per refresh and **no** still
+  refreshes, at the cost of the camera trailing the scroll by ~7 frames of
+  footage and settling ~0.3 s after the wheel stops. A trackpad never notices:
+  its deltas are already finer than the glide.
+- Raising `GLIDE_MS` smooths further and trails more; lowering it tightens and
+  starts to step again. 80 / 105 / 140 ms were measured before settling on 95.
 - **It is not a seeked `<video>`.** That was the first version, and it moved in
   visible steps: seeks are asynchronous and each must land before the next, so
   on a real scroll gesture the picture changed 25–37 times a second and trailed

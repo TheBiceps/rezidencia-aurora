@@ -73,6 +73,14 @@ function initFly() {
     [0.72, 0.80, 2, 3],
   ];
 
+  /* How long the camera takes to catch up with the scroll, in milliseconds.
+     A wheel mouse moves the page in one jump per notch — about 114px, which is
+     some 8 frames of footage — and without this the picture steps through them
+     one frame at a time. Gliding turns each notch into a short camera move.
+     Higher is smoother and lazier; lower is tighter and starts to step again.
+     A trackpad never notices: its deltas are already smaller than the glide. */
+  const GLIDE_MS = 95;
+
   let frames = 192;      // replaced by the index once it loads
   let shown = 0;         // displayed playhead, in frames, fractional
   let lastP = -1;
@@ -127,20 +135,18 @@ function initFly() {
     const settling = now - lastMove > 140;
     const goal = settling ? Math.round(exact) : exact;
 
-    /* Smoothing costs latency, and the browser already animates a wheel scroll,
-       so only smooth what actually arrives as a jump — a keyboard PageDown, a
-       scrollbar drag, a fling — and otherwise sit exactly on the scroll
-       position. Following a wheel through a second easing was the lag.
-       The eased step is frame-rate independent: the same glide at 60 and 120 Hz. */
-    const jump = Math.abs(goal - shown);
-    const follow = (settling || jump > 8) ? 1 - Math.pow(0.62, dt / 16.7) : 1;
-    shown += (goal - shown) * follow;
+    /* Frame-rate independent glide: the same feel at 60, 90 and 120 Hz. */
+    shown += (goal - shown) * (1 - Math.exp(-dt / GLIDE_MS));
     if (Math.abs(goal - shown) < 0.003) shown = goal;
 
+    /* the copy and the bar ride the same glide as the camera, or a wheel notch
+       would step them while the picture moves smoothly behind */
+    const smooth = frames > 1 ? clamp01(shown / (frames - 1)) : p;
+
     if (engine) engine.show(shown, dir);
-    paintBeats(p);
-    if (bar) bar.style.transform = `scaleX(${p.toFixed(4)})`;
-    if (cue) cue.classList.toggle('is-gone', p > 0.02);
+    paintBeats(smooth);
+    if (bar) bar.style.transform = `scaleX(${smooth.toFixed(4)})`;
+    if (cue) cue.classList.toggle('is-gone', smooth > 0.02);
 
     if (running) requestAnimationFrame(frame);
   }

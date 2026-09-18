@@ -30,7 +30,6 @@ const ready = new Set(); // groups fully decoded into cache
 let pending = [];
 let want = 0, wantDir = 1, busy = false, broken = null;
 let lastPos = -1, dirty = true;
-let told = 0;            // last time the painted frame was reported back
 
 const groupOf = i => {
   let lo = 0, hi = keys.length - 1;
@@ -120,10 +119,10 @@ function draw(pos) {
   ctx.globalAlpha = 1;
   dirty = !b0 || (t > 0.004 && !b1);
   lastPos = pos;
-  /* what is actually on screen, a few times a second — fly.js mirrors it onto
-     the canvas element so the scroll-smoothness tests can measure the truth */
-  const now = Date.now();
-  if (now - told > 16) { told = now; self.postMessage({ type: 'drew', pos: b0 ? pos : i0, exact: !!b0 }); }
+  /* what is actually on screen — fly.js mirrors it onto the canvas element, so
+     the scroll-smoothness tests measure the picture rather than the intent.
+     One small message per painted frame, never more than one per refresh. */
+  self.postMessage({ type: 'drew', pos: b0 ? pos : i0, exact: !!b0 });
   return true;
 }
 
