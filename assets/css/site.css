@@ -1162,9 +1162,26 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
    room table and the unit rail, all of which want to scroll, not to widen. */
 .detail .stack, .detail .stack > * { min-width: 0; }
 .fplan__scroll { overflow: hidden; }
-.fplan__frame { position: relative; display: block; }
+/* the frame keeps a margin for the compass letters; the plate is what the
+   outline overlay is measured against, so the two always line up */
+.fplan__frame { position: relative; display: block; padding: 20px 46px; }
+.fplan__plate { position: relative; display: block; }
 .fplan__img { display: block; width: 100%; height: auto; }
 .fplan__map { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Which way the flat looks. Derived from the building's real footprint, see the
+   note at the top of floorplan.js: the street (Prievozská) side is the bottom
+   of the drawing. */
+.fplan__dir {
+  position: absolute; z-index: 2; pointer-events: none;
+  font-size: .58rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--text-muted); font-weight: 600;
+}
+.fplan__dir--n { left: 50%; bottom: 3px; transform: translateX(-50%); }
+.fplan__dir--s { left: 50%; top: 3px; transform: translateX(-50%); }
+.fplan__dir--e { left: 2px; top: 50%; transform: translateY(-50%) rotate(180deg); writing-mode: vertical-rl; }
+.fplan__dir--w { right: 2px; top: 50%; transform: translateY(-50%); writing-mode: vertical-rl; }
+.fplan__north { display: block; margin-top: 3px; font-size: .92em; opacity: .75; text-transform: none; letter-spacing: .04em; }
 
 .fplan__unit { cursor: pointer; outline: none; }
 /* non-scaling-stroke keeps the outline an even hairline: without it the
@@ -1232,7 +1249,7 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
     overflow-x: auto; overflow-y: hidden;
     -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
   }
-  .fplan__frame { min-width: 660px; }
+  .fplan__frame { min-width: 660px; padding: 16px 34px; }
   .fplan__cap::after {
     content: " · potiahnutím posuniete pôdorys";
     color: var(--copper);
@@ -1653,6 +1670,10 @@ table.rooms tbody tr:focus-visible { background: #EFE1C9; }
    alone sets the height here; on desktop it was always the larger of the two. */
 .photo--wide { aspect-ratio: 16 / 9; min-height: 0; }
 .photo--tall { aspect-ratio: 4 / 5; min-height: 0; }
+/* a square visualisation in a 16:9 frame loses the foreground; 3:2 keeps the
+   terrace whole and still reads as a band across the section */
+.photo--32 { aspect-ratio: 3 / 2; min-height: 0; }
+@media (max-width: 599px) { .photo--32 { aspect-ratio: 4 / 3; } }
 .photo--ink { background: repeating-linear-gradient(-45deg, transparent 0 11px, rgba(247,244,239,.045) 11px 22px), var(--ink-2);
   border-color: var(--line-inv); color: var(--text-inv-muted); }
 .photo--ink > b { color: var(--text-inv); }

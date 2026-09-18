@@ -13,6 +13,18 @@
  * looking will tell apart; the PDF labels are what settle them. Left to right
  * along the courtyard side they run G, F, E.
  *
+ * WHICH WAY IS NORTH
+ * The client's material never states it, so it is derived, not guessed: the
+ * building at Prievozská 6 is in OpenStreetMap (Bratislava Business Center III,
+ * the skeleton being reconstructed) as a 43.2 x 13.7 m block whose long axis
+ * runs 70.3°/250.3°, so its long facades face 340.3° (NNW) and 160.3° (SSE),
+ * its ends 70.3° (ENE) and 250.3° (WSW). Prievozská, three lanes of it, runs
+ * along the NNW side. On the 1.NP drawing the entrance stair sits bottom left
+ * and the entrance is off the street, so the bottom of the plan is the street,
+ * the NNW side. That fixes the rest: top is SSE, left is ENE, right is WSW.
+ * The labels round those to Sever / Juh / Východ / Západ and the caption says
+ * so. THE ARCHITECT SHOULD STILL CONFIRM IT.
+ *
  * Coordinates are percentages of the cropped plan image, so they survive any
  * re-export at a different resolution — but NOT a different crop. The crop is
  * pinned in _build/plans/import_renders.py (FLOOR_CROP) for exactly that
@@ -128,16 +140,24 @@ function floorPlanHTML(floor, { activeId = null, titles = true, lazy = false } =
     <figure class="fplan" style="--plan-ratio:${(img.w / img.h).toFixed(4)}">
       <div class="fplan__scroll">
        <div class="fplan__frame">
-        <img class="fplan__img" src="${img.src}" width="${img.w}" height="${img.h}"
-             alt="${alt}"${lazy ? ' loading="lazy"' : ''} decoding="async">
-        <svg class="fplan__map" viewBox="0 0 100 100" preserveAspectRatio="none"
-             role="group" aria-label="Byty na ${floor}. nadzemnom podlaží">
-          ${onFloor.map(cell).join('')}
-        </svg>
+        <div class="fplan__plate">
+         <img class="fplan__img" src="${img.src}" width="${img.w}" height="${img.h}"
+              alt="${alt}"${lazy ? ' loading="lazy"' : ''} decoding="async">
+         <svg class="fplan__map" viewBox="0 0 100 100" preserveAspectRatio="none"
+              role="group" aria-label="Byty na ${floor}. nadzemnom podlaží">
+           ${onFloor.map(cell).join('')}
+         </svg>
+        </div>
+        <span class="fplan__dir fplan__dir--n" aria-hidden="true">Sever</span>
+        <span class="fplan__dir fplan__dir--s" aria-hidden="true">Juh</span>
+        <span class="fplan__dir fplan__dir--e" aria-hidden="true">Východ</span>
+        <span class="fplan__dir fplan__dir--w" aria-hidden="true">Západ</span>
        </div>
       </div>
       <figcaption class="fplan__cap">${img.label}${floor === 1
-        ? '' : ' · pôdorys je zhodný pre 2. až 5. NP'}</figcaption>
+        ? '' : ' · pôdorys je zhodný pre 2. až 5. NP'}
+        <span class="fplan__north">Sever je uličná strana (Prievozská). Orientácia je približná, potvrdí ju architekt.</span>
+      </figcaption>
     </figure>`;
 }
 

@@ -310,6 +310,18 @@ confirmed. Its engine went with `building.js`.)
   goes to its own page, keyboard included. Status only tints on hover — a plan
   pre-painted in three status colours reads as a heat map and buries the
   drawing.
+- **Which way the flat looks.** The plan carries Sever / Juh / Východ / Západ
+  on its four edges. The client's material still does not state the
+  orientation, so it is derived rather than guessed: OpenStreetMap has the
+  building at Prievozská 6 (Bratislava Business Center III, the skeleton being
+  reconstructed) as a 43.2 x 13.7 m block with its long axis at 70.3°, so the
+  long facades face 340.3° (NNW) and 160.3° (SSE); Prievozská runs along the
+  NNW side; and the entrance stair on the 1.NP drawing sits bottom left, on the
+  street. Bottom of the plan is therefore the street and the north side, top is
+  the courtyard and the south side, left is east, right is west. The caption
+  says the orientation is approximate and that the architect confirms it. The
+  derivation is written out at the top of `floorplan.js` — **re-check it if the
+  architect ever supplies a site plan with a north arrow.**
 - On phones the storey plan pans in a rail rather than shrinking: it is a 2.3:1
   letterbox, and squeezed to a phone it lands ~145px tall, too small to read
   nine flats off.

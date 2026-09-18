@@ -35,7 +35,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "59"
+ASSET_V = "61"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -674,9 +674,9 @@ def index_html():
         <p class="form__note">Materiály fasády, členenie podlaží a orientáciu bytov doplníme po potvrdení architektonického riešenia.</p>
       </div>
     </div>
-    <div style="margin-top:clamp(30px,4vw,52px)">{photo("Vizualizácia P6", "Vizualizácia · s panorámou Downtownu", "photo--wide reveal", "cube",
-           src="assets/img/vizualizacia-p6.webp", credit="Vizualizácia",
-           alt="Vizualizácia bytového domu P6 na Prievozskej ulici so zelenými balkónmi a strešnou terasou")}</div>
+    <div style="margin-top:clamp(30px,4vw,52px)">{photo("Strešná terasa P6", "Vizualizácia · strešná komunitná terasa po západe slnka", "photo--32 reveal", "cube",
+           src="assets/img/p6-terasa-1024.webp", credit="Vizualizácia",
+           alt="Vizualizácia strešnej komunitnej terasy P6 po západe slnka: pergoly, vyvýšené záhony, sedenie a tlmené osvetlenie")}</div>
   </div>
 </section>
 
