@@ -229,9 +229,21 @@ Nothing here is decorative-only; each piece is doing a job.
   card, so every animation is cancelled once it has run. On phones the stage
   must not keep `place-items: center`: Chrome now applies `justify-self` to
   plain blocks and shrink-wraps the plan to its 660px rail.
-- The bands are measured on the 2560x1440 image against the bottom edge of
-  each balcony slab (`DOM_FLOORS`, `DOM_X`). Ground floor is 1. NP; the roof
-  terrace is not a storey. **A different picture means re-measuring them.**
+- **Two sides, one click.** `VIEWS` in `floors.js` holds the street facade
+  (Prievozská, north) and the courtyard facade behind it, each with its own
+  picture and its own band geometry, because bands are measured in the pixels
+  of their own picture. The turn is a real rotation: the stage rotates to
+  edge-on, the picture and the bands are swapped at that point, and it rotates
+  back, ~0.7 s in total (instant under reduced motion). The storeys stay live
+  on whichever side is showing, and the side is named under the house.
+- **The courtyard render is not in yet.** `VIEWS.back.slug` is `null`, so the
+  turn button hides itself and the section behaves exactly as before. To
+  switch it on: put `p6-dom-back-{1280,1920,2560}.webp` in `assets/img/`, set
+  `slug: 'p6-dom-back'`, and **re-measure `x` and `floors` on that picture** —
+  the camera sits elsewhere, so the front numbers do not carry over.
+- The bands are measured on the 2560x1440 picture against the bottom edge of
+  each balcony slab. Ground floor is 1. NP; the roof terrace is not a storey.
+  **A different picture means re-measuring them.**
 - The picture lives inside the same SVG as the bands, so cropping the viewBox
   moves both together. Phones use a tighter frame on the building
   (`DOM_VIEW.narrow`), which makes a storey a ~32px tall, full-width band.

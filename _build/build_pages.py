@@ -35,7 +35,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "61"
+ASSET_V = "62"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -67,6 +67,8 @@ I = {
  "cube": '<path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/>',
  "check": '<path d="m5 13 4 4L19 7"/>',
  "cursor": '<path d="m4 4 7 16 2.5-6.5L20 11 4 4Z"/>',
+ "rotate": '<path d="M3 12a9 9 0 0 1 15.3-6.4L21 8"/><path d="M21 3v5h-5"/>'
+           '<path d="M21 12a9 9 0 0 1-15.3 6.4L3 16"/><path d="M3 21v-5h5"/>',
  "swipe": '<path d="M4 12h13M13 8l4 4-4 4"/>',
  "sliders": '<path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h10M18 18h2"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="18" r="2"/>',
  "tram": '<rect x="5" y="3" width="14" height="13" rx="3"/><path d="M5 10h14M9 20l-2 2M15 20l2 2M9 16v4M15 16v4"/>',
@@ -420,7 +422,7 @@ def index_html():
       </p>
     </div>
 
-    <div class="bldg" data-bldg>
+    <div class="bldg" data-bldg data-bldg-v="{ASSET_V}">
       <svg class="bldg__svg" viewBox="0 0 2560 1440" preserveAspectRatio="xMidYMid slice"
            role="group" aria-label="Vizualizácia domu P6, výber podlažia">
         <image class="bldg__img" data-bldg-img width="2560" height="1440" preserveAspectRatio="none"
@@ -431,6 +433,9 @@ def index_html():
       </svg>
       <noscript><img class="bldg__fallback" src="assets/img/p6-dom-1920.webp?v={ASSET_V}" width="1920" height="1080"
            alt="Vizualizácia bytového domu P6 z Prievozskej ulice"></noscript>
+      <button type="button" class="bldg__rotate" data-bldg-rotate hidden
+              aria-label="Otočiť dom na druhú stranu">{svg("rotate")}<span>Otočiť dom</span></button>
+      <span class="bldg__side" data-bldg-side aria-live="polite">Uličná strana, sever</span>
       <span class="bldg__label">Vizualizácia</span>
       <div class="tip tip--floor" data-tip data-show="false" role="status" aria-live="polite"></div>
     </div>

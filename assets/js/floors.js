@@ -12,33 +12,60 @@
  * The floor view has its own history entry (#podlazie-3), so the browser's
  * back button returns to the building, and that address opens it directly.
  *
+ * TWO SIDES
+ * The house can be turned: the street facade (Prievozská, the north side) and
+ * the courtyard facade behind it. One click turns it, and the storeys stay
+ * live on whichever side is showing. Each side carries its own picture AND its
+ * own band geometry, because the bands are measured in the pixels of that
+ * picture; VIEWS below holds both. A side with no picture configured simply
+ * does not exist and the turn button hides itself, which is what happens until
+ * the investor's render of the second facade is in `assets/img/`.
+ *
  * WHERE THE BANDS COME FROM
- * Measured on the 2560x1440 image (assets/img/p6-dom-2560.webp) against the
- * bottom edge of each balcony slab, which is where one storey visibly ends and
- * the next begins. The top storey runs up to the roof edge; the roof terrace
- * above it is not a storey with flats. Ground floor = 1. NP, so the picture has
- * exactly the five storeys BUILDING.floors says.
+ * Measured on the picture itself (2560x1440) against the bottom edge of each
+ * balcony slab, which is where one storey visibly ends and the next begins.
+ * The top storey runs up to the roof edge; the roof terrace above it is not a
+ * storey with flats. Ground floor = 1. NP, so the picture has exactly the five
+ * storeys BUILDING.floors says.
  *
  * The coordinates are in image pixels and the image sits inside the same SVG
- * as the bands, so any crop of the viewBox moves both together. A new picture
- * means re-measuring these numbers.
+ * as the bands, so any crop of the viewBox moves both together. A NEW PICTURE
+ * MEANS RE-MEASURING these numbers for that side.
  *
  * Counts are read from APARTMENTS at load: change a status in data.js and the
  * card follows.
  * ------------------------------------------------------------------------ */
 
 const DOM_IMG = { w: 2560, h: 1440 };
-const DOM_X = [546, 2110];                  // facade, left and right edge
-const DOM_FLOORS = {                         // storey -> [top, bottom]
-  5: [184, 362],
-  4: [362, 508],
-  3: [508, 658],
-  2: [658, 808],
-  1: [808, 988],
+
+/* Each side: the facade's left and right edge in image pixels, every storey as
+   [top, bottom], and how the phone crop frames it (a storey has to stay a
+   thumb-sized band rather than a 20px sliver). `slug` is the file stem in
+   assets/img/, expected at 1280 / 1920 / 2560 px wide. */
+const VIEWS = {
+  front: {
+    slug: 'p6-dom',
+    label: 'Pohľad z Prievozskej',
+    side: 'Uličná strana, sever',
+    x: [546, 2110],
+    floors: { 5: [184, 362], 4: [362, 508], 3: [508, 658], 2: [658, 808], 1: [808, 988] },
+    narrow: '500 130 1660 900',
+  },
+  /* The courtyard render is not in yet. Fill in `slug` once the file is in
+     assets/img/ AND re-measure x / floors on that picture: the camera sits
+     somewhere else, so the old numbers do not carry over. */
+  back: {
+    slug: null,
+    label: 'Pohľad z dvora',
+    side: 'Dvorová strana, juh',
+    x: [546, 2110],
+    floors: { 5: [184, 362], 4: [362, 508], 3: [508, 658], 2: [658, 808], 1: [808, 988] },
+    narrow: '500 130 1660 900',
+  },
 };
-/* phones: frame the building rather than the street, so a storey is a
-   thumb-sized band instead of a 20px sliver */
-const DOM_VIEW = { wide: `0 0 ${DOM_IMG.w} ${DOM_IMG.h}`, narrow: '500 130 1660 900' };
+const VIEW_ORDER = ['front', 'back'];
+/* the same five storeys whichever side is showing */
+const STOREYS = Object.keys(VIEWS.front.floors).map(Number).sort((a, b) => a - b);
 
 function floorCounts(f) {
   const on = APARTMENTS.filter(a => a.floor === f);
@@ -59,53 +86,121 @@ function initFloors() {
   const isTouch = window.matchMedia('(hover: none)').matches;
   const narrow = window.matchMedia('(max-width: 899px)');
 
-  /* --- storeys --------------------------------------------------------- */
-  const [x0, x1] = DOM_X;
-  layer.innerHTML = Object.entries(DOM_FLOORS).map(([f, [top, bottom]]) => {
-    const c = floorCounts(Number(f));
-    const label = `${f}. nadzemné podlažie: ${c.total} ${plural(c.total, 'byt', 'byty', 'bytov')}, `
-      + `voľné ${c.free}, rezervované ${c.reserved}, predané ${c.sold}`;
-    return `<a class="bldg__floor" href="byty.html?floor=${f}" data-floor="${f}" aria-label="${label}">
-              <rect x="${x0}" y="${top}" width="${x1 - x0}" height="${bottom - top}"/>
-              <g class="bldg__tag" transform="translate(${x1 - 18} ${(top + bottom) / 2})">
-                <rect x="-108" y="-27" width="108" height="54" rx="4"/>
-                <text x="-54" y="10">${f}. NP</text>
-              </g>
-            </a>`;
-  }).join('');
-  const floors = [...layer.querySelectorAll('.bldg__floor')];
+  /* --- the two sides ---------------------------------------------------- */
+  const sides = VIEW_ORDER.filter(k => VIEWS[k].slug);
+  let sideKey = sides[0] || 'front';
+  const sideView = () => VIEWS[sideKey];
+  const ver = root.dataset.bldgV ? `?v=${root.dataset.bldgV}` : '';
+  const rotateBtn = root.querySelector('[data-bldg-rotate]');
+  const sideLabel = root.querySelector('[data-bldg-side]');
+
+  /* the file that is sharp enough for the box the picture is drawn in */
+  function pickSrc(view) {
+    const r = root.getBoundingClientRect();
+    /* on phones the building is cropped in, so it is drawn larger than the
+       box width suggests */
+    const zoom = narrow.matches ? DOM_IMG.w / Number(view.narrow.split(' ')[2]) : 1;
+    const need = r.width * zoom * Math.min(window.devicePixelRatio || 1, 2);
+    const w = need > 1920 ? 2560 : need > 1280 ? 1920 : 1280;
+    return `assets/img/${view.slug}-${w}.webp${ver}`;
+  }
+
+  /* --- storeys, rebuilt for whichever side is showing -------------------- */
+  let floors = [];
+  function buildBands() {
+    const view = sideView();
+    const [x0, x1] = view.x;
+    layer.innerHTML = Object.entries(view.floors).map(([f, [top, bottom]]) => {
+      const c = floorCounts(Number(f));
+      const label = `${f}. nadzemné podlažie: ${c.total} ${plural(c.total, 'byt', 'byty', 'bytov')}, `
+        + `voľné ${c.free}, rezervované ${c.reserved}, predané ${c.sold}`;
+      return `<a class="bldg__floor" href="byty.html?floor=${f}" data-floor="${f}" aria-label="${label}">
+                <rect x="${x0}" y="${top}" width="${x1 - x0}" height="${bottom - top}"/>
+                <g class="bldg__tag" transform="translate(${x1 - 18} ${(top + bottom) / 2})">
+                  <rect x="-108" y="-27" width="108" height="54" rx="4"/>
+                  <text x="-54" y="10">${f}. NP</text>
+                </g>
+              </a>`;
+    }).join('');
+    floors = [...layer.querySelectorAll('.bldg__floor')];
+    wireFloors();
+  }
 
   /* --- framing ---------------------------------------------------------- */
-  const frame = () => svg.setAttribute('viewBox', narrow.matches ? DOM_VIEW.narrow : DOM_VIEW.wide);
-  frame();
-  if (narrow.addEventListener) narrow.addEventListener('change', frame);
+  const frame = () => svg.setAttribute('viewBox',
+    narrow.matches ? sideView().narrow : `0 0 ${DOM_IMG.w} ${DOM_IMG.h}`);
+  if (narrow.addEventListener) narrow.addEventListener('change', () => { frame(); paint(); });
 
-  /* --- picture: the smallest file that is still sharp, fetched on approach */
+  /* --- picture: fetched on approach, decoded before it is shown ---------- */
+  const loaded = new Set();
+  function showPicture(view) {
+    const src = pickSrc(view);
+    if (loaded.has(src)) { img.setAttribute('href', src); root.classList.add('is-loaded'); return Promise.resolve(); }
+    const pre = new Image();
+    pre.src = src;
+    const ready = () => { loaded.add(src); img.setAttribute('href', src); root.classList.add('is-loaded'); };
+    return (pre.decode ? pre.decode() : Promise.reject())
+      .then(ready, () => new Promise(res => {
+        pre.onload = () => { ready(); res(); };
+        pre.onerror = res;
+        if (pre.complete) { ready(); res(); }
+      }));
+  }
+
+  function paint() {
+    frame();
+    buildBands();
+    if (sideLabel) sideLabel.textContent = sideView().side;
+    if (rotateBtn) {
+      const other = VIEWS[sides[(sides.indexOf(sideKey) + 1) % sides.length]];
+      rotateBtn.hidden = sides.length < 2;
+      if (other) rotateBtn.setAttribute('aria-label', `Otočiť dom: ${other.label}`);
+    }
+    return img ? showPicture(sideView()) : Promise.resolve();
+  }
+
   if (img) {
-    const load = () => {
-      const r = root.getBoundingClientRect();
-      /* on phones the building is cropped in, so it is drawn larger than the
-         box width suggests */
-      const zoom = narrow.matches ? DOM_IMG.w / 1660 : 1;
-      const need = r.width * zoom * Math.min(window.devicePixelRatio || 1, 2);
-      const src = need > 1920 ? img.dataset.srcLg : need > 1280 ? img.dataset.srcMd : img.dataset.srcSm;
-      /* decode first, then swap in: the SVG <image> then paints complete and
-         the fade never starts on a half-loaded picture */
-      const pre = new Image();
-      pre.src = src;
-      const ready = () => { img.setAttribute('href', src); root.classList.add('is-loaded'); };
-      (pre.decode ? pre.decode() : Promise.reject()).then(ready, () => {
-        pre.onload = ready;
-        if (pre.complete) ready();
-      });
-    };
+    const start = () => paint();
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver(([e]) => {
-        if (e.isIntersecting) { io.disconnect(); load(); }
+        if (e.isIntersecting) { io.disconnect(); start(); }
       }, { rootMargin: '900px 0px' });
       io.observe(root);
-    } else load();
+    } else start();
+  } else paint();
+
+  /* --- turning the house ------------------------------------------------ */
+  let turning = false;
+  async function rotate() {
+    if (turning || sides.length < 2) return;
+    turning = true;
+    clear();
+    const next = sides[(sides.indexOf(sideKey) + 1) % sides.length];
+    /* have the other picture decoded before the turn starts, or the house
+       comes back blank halfway through */
+    const pre = new Image();
+    pre.src = pickSrc(VIEWS[next]);
+    await (pre.decode ? pre.decode().catch(() => {}) : Promise.resolve());
+
+    const stage = svg;
+    if (calm || !stage.animate) {
+      sideKey = next; await paint(); turning = false; return;
+    }
+    root.classList.add('is-turning');
+    const half = { duration: 320, easing: 'cubic-bezier(.45, 0, .55, 1)', fill: 'both' };
+    await stage.animate([{ transform: 'perspective(1400px) rotateY(0deg)', opacity: 1 },
+                         { transform: 'perspective(1400px) rotateY(-84deg)', opacity: .25 }], half).finished.catch(() => {});
+    sideKey = next;
+    await paint();
+    stage.getAnimations().forEach(an => an.cancel());
+    await stage.animate([{ transform: 'perspective(1400px) rotateY(84deg)', opacity: .25 },
+                         { transform: 'perspective(1400px) rotateY(0deg)', opacity: 1 }],
+                        { ...half, duration: 380 }).finished.catch(() => {});
+    stage.getAnimations().forEach(an => an.cancel());
+    root.classList.remove('is-turning');
+    turning = false;
   }
+  if (rotateBtn) rotateBtn.addEventListener('click', rotate);
 
   /* --- card ------------------------------------------------------------- */
   /* touch: the storey the first tap opened. Kept apart from .is-hot, because a
@@ -119,7 +214,7 @@ function initFloors() {
     if (tip) tip.dataset.show = 'false';
   }
 
-  function show(el, pointerX) {
+  function showFloor(el, pointerX) {
     const f = Number(el.dataset.floor);
     const c = floorCounts(f);
     root.classList.remove('is-intro');
@@ -177,19 +272,21 @@ function initFloors() {
     tip.style.top = `${y}px`;
   }
 
-  floors.forEach(el => {
-    el.addEventListener('mouseenter', e => { if (!isTouch) show(el, e.clientX); });
-    el.addEventListener('focus', () => show(el));
-    el.addEventListener('blur', () => { if (!isTouch) clear(); });
-    el.addEventListener('click', e => {
-      /* a new-tab click still gets the apartment list the link points at */
-      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      e.preventDefault();
-      /* touch: the first tap shows the card, a second tap or its button goes on */
-      if (isTouch && armed !== el) { show(el); armed = el; return; }
-      openFloor(Number(el.dataset.floor));
+  function wireFloors() {
+    floors.forEach(el => {
+      el.addEventListener('mouseenter', e => { if (!isTouch) showFloor(el, e.clientX); });
+      el.addEventListener('focus', () => showFloor(el));
+      el.addEventListener('blur', () => { if (!isTouch) clear(); });
+      el.addEventListener('click', e => {
+        /* a new-tab click still gets the apartment list the link points at */
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        /* touch: the first tap shows the card, a second tap or its button goes on */
+        if (isTouch && armed !== el) { showFloor(el); armed = el; return; }
+        openFloor(Number(el.dataset.floor));
+      });
     });
-  });
+  }
   svg.addEventListener('mouseleave', () => { if (!isTouch) clear(); });
   document.addEventListener('click', e => {
     if (!isTouch) return;
@@ -208,7 +305,7 @@ function initFloors() {
   const ease = 'cubic-bezier(.7, 0, .25, 1)';
   const settle = 'cubic-bezier(.2, .8, .2, 1)';
   const back = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>';
-  const storeys = Object.keys(DOM_FLOORS).map(Number).sort((x, y) => x - y);
+  const storeys = STOREYS;
 
   const view = document.createElement('div');
   view.className = 'fview';
@@ -284,7 +381,7 @@ function initFloors() {
   const drop = el => el.getAnimations().forEach(an => an.cancel());
 
   async function openFloor(f, { animate = true, push = true } = {}) {
-    if (busy || !DOM_FLOORS[f]) return;
+    if (busy || !STOREYS.includes(Number(f))) return;
     clear();
 
     if (current != null) {                   // already inside: swap storeys
@@ -428,7 +525,7 @@ function initFloors() {
   chips.forEach(ch => ch.addEventListener('click', () => openFloor(Number(ch.dataset.fviewFloor))));
 
   /* a typed or linked #podlazie-3 arrives as a fragment navigation with no state */
-  const hashFloor = () => { const m = /^#podlazie-(\d)$/.exec(location.hash); return m && DOM_FLOORS[m[1]] ? Number(m[1]) : null; };
+  const hashFloor = () => { const m = /^#podlazie-(\d)$/.exec(location.hash); return m && STOREYS.includes(Number(m[1])) ? Number(m[1]) : null; };
   window.addEventListener('popstate', e => {
     const f = (e.state && e.state.p6floor) || hashFloor();
     if (f) openFloor(f, { push: false });
@@ -507,7 +604,7 @@ function initFloors() {
 
   /* arriving on #podlazie-3 opens that storey straight away */
   const deep = /^#podlazie-(\d)$/.exec(location.hash);
-  if (deep && DOM_FLOORS[deep[1]]) {
+  if (deep && STOREYS.includes(Number(deep[1]))) {
     const f = Number(deep[1]);
     if (history.replaceState) history.replaceState({ p6floor: f }, '', location.hash);
     openFloor(f, { animate: false, push: false });
@@ -533,7 +630,7 @@ function initFloors() {
   /* --- floor chips: the dependable way in on small screens ---------------- */
   const strip = document.querySelector('[data-floorstrip]');
   if (strip) {
-    strip.innerHTML = Object.keys(DOM_FLOORS).map(Number).sort((a, b) => b - a).map(f => {
+    strip.innerHTML = STOREYS.slice().sort((a, b) => b - a).map(f => {
       const { free } = floorCounts(f);
       return `<a class="floorstrip__row" href="byty.html?floor=${f}">
                 <span class="floorstrip__no">${f}. NP</span>

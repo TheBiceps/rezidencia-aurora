@@ -2024,6 +2024,40 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
 .bldg__img { opacity: 0; transition: opacity .5s ease; }
 .bldg.is-loaded .bldg__img { opacity: 1; }
 .bldg__fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* turning the house: one click and the storeys come back live on the other
+   side. The stage itself rotates, so the bands turn with the picture. */
+.bldg__svg { transform-origin: 50% 50%; }
+/* mid-turn the picture is edge-on and the stage shows through, so the sky-blue
+   ground is swapped for paper for the half second it lasts */
+.bldg.is-turning { pointer-events: none; background: var(--paper-2); }
+.bldg__rotate {
+  position: absolute; left: 14px; bottom: 12px; z-index: 3;
+  display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 17px;
+  background: rgba(247, 244, 239, .93); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 100px; cursor: pointer;
+  font: inherit; font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 500;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+.bldg__rotate:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.bldg__rotate svg { width: 17px; height: 17px; flex: none; }
+.bldg__rotate[hidden] { display: none; }
+.bldg__side {
+  position: absolute; left: 50%; bottom: 20px; z-index: 2; transform: translateX(-50%);
+  pointer-events: none; white-space: nowrap;
+  font-size: .62rem; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(247, 244, 239, .92);
+  background: rgba(20, 18, 15, .34); padding: 5px 11px; border-radius: 100px;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.bldg.is-floor .bldg__rotate, .bldg.is-floor .bldg__side { display: none; }
+@media (max-width: 899px) {
+  /* the label alone on a phone: the icon says the rest */
+  .bldg__rotate { left: 10px; bottom: 10px; width: 44px; padding: 0; justify-content: center; }
+  .bldg__rotate span { display: none; }
+  .bldg__side { bottom: 12px; left: auto; right: 12px; transform: none; font-size: .56rem; }
+}
 .bldg__label {
   position: absolute; right: 14px; bottom: 12px; z-index: 2; pointer-events: none;
   font-size: .62rem; letter-spacing: .18em; text-transform: uppercase;
