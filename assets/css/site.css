@@ -1864,7 +1864,10 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
    drives the footage.
    =========================================================================== */
 .fly { position: relative; background: var(--ink); color: var(--text-inv); }
-.fly.is-live { height: 330svh; }                 /* 230svh of scroll scrubs the flight */
+.fly.is-live { height: 380svh; }                 /* 280svh of scroll scrubs the flight */
+/* The taller the section, the less footage a single wheel notch moves: at
+   330svh a notch jumped ~9 frames of an 8s clip, at 380svh it is ~7.5, which
+   is what makes the camera feel controllable rather than flicked. */
 /* no overflow:hidden on .fly itself — it would silently break position:sticky */
 .fly__pin { position: relative; height: 100svh; min-height: 560px; overflow: hidden; }
 .fly.is-live .fly__pin { position: sticky; top: 0; }
@@ -1950,7 +1953,7 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
    read on paper below it. */
 @media (max-width: 899px) {
   .fly { background: var(--paper); color: var(--ink); }
-  .fly.is-live { height: 260svh; }
+  .fly.is-live { height: 300svh; }
   .fly__pin { min-height: 0; display: flex; flex-direction: column; }
   .fly__media { position: relative; inset: auto; flex: none; height: 56svh; }
   .fly__poster, .fly__video { object-position: 50% 48%; }   /* fly.js FOCUS_Y matches */
@@ -2128,4 +2131,76 @@ a.ucard:hover .ucard__go svg { opacity: 1; transform: translateX(3px); }
   .fview__stage { container-type: normal; display: block; place-items: normal; }
   .fview__stage .fplan { width: auto; }
   .bldg__tag { display: none; }
+}
+
+/* ===========================================================================
+   PHONE POLISH
+   Audited at 320 / 390 / 430 / 768 px with a coarse pointer: every page was
+   already free of sideways scroll, so this is the finer grain — type that
+   falls under about 12px on a small screen, fields that make iOS zoom the
+   whole page, and controls sitting closer together than a fingertip can
+   separate.
+   =========================================================================== */
+
+/* copy that depends on the pointer, not the width: a phone has no "hover" */
+.on-touch { display: none; }
+@media (hover: none) {
+  .on-mouse { display: none; }
+  .on-touch { display: inline; }
+}
+
+/* an in-page link must not land under the fixed bar (and the chapter rail) */
+html { scroll-padding-top: calc(var(--nav-h) + 16px); }
+@media (max-width: 899px) { html { scroll-padding-top: calc(var(--nav-h) + 60px); } }
+
+/* the grey box a tap leaves on touch Chrome is not our palette */
+a, button, summary, label, [role="button"] { -webkit-tap-highlight-color: rgba(169, 140, 100, .16); }
+.btn, .nav__burger, .drawer__close, .legend__item, .chapters__link, .floorstrip__row,
+.fview__chip, .fview__back, .tip__close, .filters__toggle { touch-action: manipulation; }
+
+/* a sideways rail should not hand the gesture to the browser's back-swipe */
+.rail, .chapters__inner, .fview__floors, .route, .table-wrap, .fplan__scroll { overscroll-behavior-x: contain; }
+
+@media (max-width: 899px) {
+  /* iOS zooms the page when a focused field is under 16px, and the zoom never
+     comes back on its own — everything typed into stays at 16 */
+  .field input, .field select, .form input, .form select, .form textarea { font-size: 16px; }
+  .field label { font-size: .78rem; letter-spacing: .13em; }
+
+  /* small caps labels: .72rem is 11.5px on a phone, under the readable floor */
+  .eyebrow { font-size: .86rem; letter-spacing: .16em; margin-bottom: 16px; }
+  .btn { font-size: .82rem; letter-spacing: .1em; }
+  .form__note, .foot__note { font-size: .88rem; }
+  .photo__credit { font-size: .76rem; letter-spacing: .1em; }
+  .fplan__cap { font-size: .78rem; letter-spacing: .08em; }
+  .point { font-size: .95rem; }
+  .ucard__type { font-size: .9rem; }
+  .picker__hint, .legend__item { font-size: .78rem; }
+  .chapters__label { font-size: .68rem; }
+  .chapters__link { font-size: .78rem; padding-inline: 14px; }
+  .foot a { font-size: .97rem; }
+
+  /* a fingertip cannot pick between targets closer than about 8px */
+  .drawer__links { gap: 8px; }
+  .chapters__inner { gap: 8px; }
+  .foot ul { gap: 8px; }
+  .drawer__foot { gap: 14px 26px; }
+
+  /* the consent row is one target: the box and its label together */
+  .form .consent { gap: 14px; padding-block: 8px; }
+  .form .consent input { width: 26px; height: 26px; min-height: 26px; }
+  .form .consent label { font-size: .92rem; line-height: 1.5; }
+}
+
+/* On a phone the storey bands on the picture are about 32px tall — the house is
+   wide and the screen is not — so the chips move directly under it and become
+   the sure way in. First tap on a band only opens its card, so a miss costs a
+   tap, never a wrong page. */
+@media (max-width: 899px) {
+  .picker-sec .shell { display: flex; flex-direction: column; }
+  .picker-sec__head { order: 1; }
+  .bldg { order: 2; }
+  .floorstrip-wrap { order: 3; margin-top: 18px !important; }
+  .picker-sec__foot { order: 4; margin-top: 18px; }
+  .floorstrip__row { min-height: 58px; }
 }

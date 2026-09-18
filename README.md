@@ -136,6 +136,14 @@ Nothing here is decorative-only; each piece is doing a job.
   invented a drone flying past, Veo 3.1 let the building morph). Only the
   first 8.0 s are used; after that the lens starts leaning wide-angle. Around
   3,300 credits in total.
+- **Decoding runs in a worker.** `fly-worker.js` gets the MP4, the frame index
+  and the canvas (handed over as an OffscreenCanvas); this thread only works
+  out where the playhead should be and posts it. On the main thread a keyframe
+  group decoding mid-scroll stalled the page for up to 250 ms — exactly under
+  the reader's hand.
+- **The playhead sits on the scroll position**, and is only eased when the
+  scroll actually jumps (keyboard, scrollbar, fling). Easing a wheel that the
+  browser already animates was the second half of the lag.
 - **It is not a seeked `<video>`.** That was the first version, and it moved in
   visible steps: seeks are asynchronous and each must land before the next, so
   on a real scroll gesture the picture changed 25–37 times a second and trailed
@@ -144,10 +152,14 @@ Nothing here is decorative-only; each piece is doing a job.
   blending the two frames either side of the exact scroll position. When the
   scroll rests it eases onto a whole frame, so a still never shows two frames
   at once.
-- **Measured** (headless Chrome, `Input.synthesizeScrollGesture`): the picture
-  changes on every display refresh while the page moves, scrolling down or up,
-  at 600 through 3,000 px/s, on desktop and at 390px, with zero frames drawn
-  before they were decoded. A notched mouse wheel (100px jumps) still glides.
+- **Measured** (headless Chrome): every compositor frame is a different
+  picture, 53–60 a second, scrolling down or up at 600–3,000 px/s, on desktop
+  and at 390px, with zero frames drawn before they were decoded. Spinning a
+  mouse wheel (100px notches every 30–120 ms): 60 fps, no dropped frames,
+  worst frame gap 17 ms, and the picture trails the scroll by ~1.4 frames of
+  footage. Before the worker it was ~5 frames with 250 ms stalls.
+- The section is 380svh (300 on phones) for feel, not for the footage: the
+  taller it is, the less film a single wheel notch moves (~7.5 frames).
 - **Memory.** All 192 frames as bitmaps would be over a gigabyte at 1600px, so
   frames are decoded a keyframe group (12) at a time and only the group under
   the playhead and its two neighbours are kept. Off screen for 2 s, it drops
@@ -414,6 +426,28 @@ Phone-specific behaviour, all in the `MOBILE` blocks at the end of the CSS:
   around 11px rather than 7px.
 - `--nav-h` drops to 64px.
 
+Phone polish, audited at 320 / 390 / 430 / 768 px with a coarse pointer
+(`/tmp` harness: every page, every width, checking sideways scroll, target size
+and spacing, text size, alt text and labels):
+
+- **Form fields are 16px on a phone.** iOS zooms the whole page when a focused
+  input is smaller, and it does not zoom back out.
+- Small-caps labels grew: `.eyebrow` 11.5 → 13.8px, field labels 10.6 → 12.5px,
+  button text 11.8 → 13.1px, photo credits 10.2 → 12.2px, `.point` chips
+  13.8 → 15.2px. Body copy was already 16px.
+- Targets that sat 1–4px apart now clear 8px: the drawer's links, the chapter
+  rail, the footer list. The consent checkbox is 26px inside a 44px row.
+- `scroll-padding-top` keeps an in-page link from landing under the fixed bar
+  and the chapter rail; horizontal rails get `overscroll-behavior-x: contain`
+  so a sideways swipe cannot trigger the browser's back gesture; the tap
+  highlight is sand rather than the default grey box.
+- **The storey chips moved directly under the building** on phones (order on a
+  flex `.shell`, 58px rows). The bands on the picture are only ~32px tall
+  there — the house is wide and the screen is not — so the chips are the sure
+  route and a band's first tap only opens its card.
+- Copy that says "hover" is swapped for a tap wording under `@media (hover:
+  none)` (`.on-mouse` / `.on-touch`), not by width.
+
 Two CSS traps worth remembering if this gets extended:
 
 1. `[hidden] { display: none !important; }` is set globally. Any component
@@ -456,7 +490,8 @@ Tokens are at the top of `assets/css/site.css`.
 | `plan.js` | schematic floor plans — full on the detail page, compact thumbnails on cards |
 | `map.js` | schematic city map, five-minute city, business-zone route |
 | `floors.js` | "Vyberte si byt priamo v dome": storey bands on the visualisation, floor card, dive into the storey plan, flat cards, floor strip |
-| `fly.js` | hero fly-by: WebCodecs → canvas, scroll-linked, copy beats, progress bar |
+| `fly.js` | hero fly-by: scroll → playhead, copy beats, progress bar; hands decoding to the worker |
+| `fly-worker.js` | the fly-by's decoder: WebCodecs → OffscreenCanvas, off the main thread |
 | `motion.js` | reveal, count-up, spotlight, chapter scroll-spy |
 | `list.js` | unit cards + the brief's six filters (also exports `unitCardHTML`) |
 | `detail.js` | single-unit page, plan, room table, sticky CTA |

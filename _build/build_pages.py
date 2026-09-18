@@ -35,7 +35,7 @@ PHONE = "+421 900 000 000"               # placeholder
 PREVIEW = True
 
 # Bump whenever CSS/JS changes — appended as ?v= to every asset link.
-ASSET_V = "55"
+ASSET_V = "56"
 
 # Mandated by the architect (Ing. arch. Martin Krajči) — must stay visible
 # wherever plans or areas are shown.
@@ -414,7 +414,10 @@ def index_html():
         <p class="eyebrow">Výber bytu</p>
         <h2>Vyberte si byt priamo v dome</h2>
       </div>
-      <p class="picker-sec__note">Prejdite myšou po podlažiach domu a uvidíte, koľko bytov je na nich voľných. Kliknutím otvoríte pôdorys podlažia a vyberiete si byt.</p>
+      <p class="picker-sec__note">
+        <span class="on-mouse">Prejdite myšou po podlažiach domu a uvidíte, koľko bytov je na nich voľných. Kliknutím otvoríte pôdorys podlažia a vyberiete si byt.</span>
+        <span class="on-touch">Ťuknite na podlažie a uvidíte, koľko bytov je na ňom voľných. Ďalším ťuknutím otvoríte pôdorys podlažia a vyberiete si byt.</span>
+      </p>
     </div>
 
     <div class="bldg" data-bldg>
